@@ -127,3 +127,33 @@ served over HTTPS: in
 `android:usesCleartextTraffic="true"` attribute (it was only needed for the
 local `http://` testing setup — see `mobile/README.md` for why) — then
 rebuild.
+
+## 10. Deploy the admin dashboard (Netlify)
+
+The admin dashboard (`admin/`) is a static site (React + Vite), so it deploys
+separately from the backend — Netlify's free tier is a good fit.
+
+1. Go to [app.netlify.com/signup](https://app.netlify.com/signup) and create
+   an account (GitHub sign-in is easiest, same account you used for the
+   `cn` repo).
+2. From the Netlify dashboard, click **Add new site** → **Import an existing
+   project** → **Deploy with GitHub**.
+3. Authorize Netlify to access GitHub if prompted, then pick the `cn` repo.
+4. On the build settings screen, set:
+   - **Base directory**: `admin`
+   - **Build command**: `npm run build`
+   - **Publish directory**: `admin/dist`
+5. Before deploying, add an environment variable (there's a "New variable"
+   option on that same screen, or under **Site configuration** →
+   **Environment variables** after the site is created):
+   - `VITE_API_BASE_URL` = `https://cn-production-5a70.up.railway.app/api/v1`
+6. Click **Deploy**. Netlify builds it and gives you a URL like
+   `https://random-name-123abc.netlify.app` — that's your admin dashboard's
+   public link. You can rename it under **Site configuration** → **Change
+   site name** for something more memorable, like `car-nanny-admin`.
+7. Log in with `admin@carnanny.app` / `CarNanny123!` (the account seeded in
+   step 6 above) — **change this password** once you're in, via a real admin
+   account-management flow if/when one exists, or ask for a password change
+   endpoint to be added.
+
+Every future `git push` to `main` that touches `admin/` will auto-redeploy.
