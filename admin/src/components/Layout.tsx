@@ -16,7 +16,10 @@ export function Layout() {
   return (
     <div className="app-shell">
       <aside className="sidebar">
-        <h1>Car Nanny Admin</h1>
+        <div className="sidebar-brand">
+          <img src="/icon-192.png" alt="Car Nanny" />
+          <h1>Car Nanny Admin</h1>
+        </div>
         <nav>
           {NAV_ITEMS.map((item) => (
             <NavLink

@@ -16,7 +16,10 @@ export function LoginPage() {
   return (
     <div className="login-screen">
       <div className="login-card">
-        <h1>Car Nanny Admin</h1>
+        <div className="login-logo">
+          <img src="/icon-192.png" alt="Car Nanny" />
+          <h1>Car Nanny Admin</h1>
+        </div>
         <label>Email</label>
         <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" />
         <label>Password</label>
