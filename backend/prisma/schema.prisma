@@ -1,0 +1,584 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- Enums ----------
+
+enum UserStatus {
+  pending_verification
+  active
+  suspended
+}
+
+enum AccountType {
+  individual
+  corporate
+  fleet
+}
+
+enum UserRole {
+  customer
+  partner
+  admin_super
+  admin_ops
+  admin_inspection
+  admin_support
+  admin_finance
+  admin_partner_manager
+  admin_content
+  admin_compliance
+  admin_analyst
+}
+
+enum OwnershipType {
+  personal
+  company
+  fleet
+}
+
+enum DocumentType {
+  registration
+  insurance
+  warranty
+  ownership_transfer
+  other
+}
+
+enum InspectionStatus {
+  booked
+  assigned
+  in_progress
+  submitted
+  qa_review
+  completed
+  cancelled
+}
+
+enum CheckpointCategory {
+  engine
+  transmission
+  chassis
+  brakes
+  suspension
+  steering
+  electrical
+  battery
+  ac
+  tires
+  wheels
+  interior
+  exterior
+  fluids
+  paint_thickness
+  obd
+  road_test
+}
+
+enum CheckpointResult {
+  pass
+  minor_defect
+  critical_defect
+  not_applicable
+}
+
+enum OverallStatus {
+  green
+  amber
+  red
+}
+
+enum AiRecommendation {
+  buy
+  buy_after_negotiation
+  proceed_with_caution
+  do_not_buy
+}
+
+enum MediaType {
+  photo
+  video
+}
+
+enum PartnerType {
+  garage
+  inspector
+  insurer
+  warranty_provider
+  finance_provider
+  roadside_provider
+  detailer
+  transporter
+}
+
+enum PartnerStatus {
+  pending
+  verified
+  rejected
+  suspended
+}
+
+enum BookingType {
+  service
+  inspection
+  roadside
+  concierge
+}
+
+enum BookingStatus {
+  pending
+  confirmed
+  in_progress
+  completed
+  cancelled
+  payment_pending
+}
+
+enum PaymentMethod {
+  card
+  apple_pay
+  google_pay
+  pay_at_service
+}
+
+enum PaymentProvider {
+  stripe
+  local_gateway
+  none
+}
+
+enum PaymentStatus {
+  pending
+  captured
+  failed
+  refunded
+}
+
+enum RelatedEntityType {
+  booking
+  inspection
+  warranty_policy
+  insurance_policy
+  roadside_request
+}
+
+enum NotificationChannel {
+  push
+  sms
+  email
+  whatsapp
+}
+
+enum ConversationRole {
+  user
+  assistant
+}
+
+// ---------- Models ----------
+
+model User {
+  id                  String       @id @default(uuid())
+  email               String       @unique
+  phoneNumber         String?      @unique @map("phone_number")
+  fullName            String       @map("full_name")
+  preferredLanguage   String       @default("en") @map("preferred_language")
+  emirate             String?
+  status              UserStatus   @default(pending_verification)
+  accountType         AccountType  @default(individual) @map("account_type")
+  role                UserRole     @default(customer)
+  passwordHash        String       @map("password_hash")
+  profilePhotoUrl     String?      @map("profile_photo_url")
+  createdAt           DateTime     @default(now()) @map("created_at")
+  updatedAt           DateTime     @updatedAt @map("updated_at")
+
+  vehicleOwners       VehicleOwner[]
+  otpCodes            OtpCode[]
+  bookingsAsCustomer  Booking[]        @relation("BookingCustomer")
+  inspectionRequests  Inspection[]     @relation("InspectionRequester")
+  notifications       Notification[]
+  notificationPrefs   NotificationPreference[]
+  aiConversations     AiConversation[]
+  reviews             Review[]
+  rewardsAccount      RewardsAccount?
+  supportTickets      SupportTicket[]
+  refreshTokens       RefreshToken[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  tokenHash String   @map("token_hash")
+  expiresAt DateTime @map("expires_at")
+  revoked   Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+/// One-time codes used for password reset (identifier is the account email).
+model OtpCode {
+  id         String   @id @default(uuid())
+  userId     String?  @map("user_id")
+  identifier String
+  codeHash   String   @map("code_hash")
+  purpose    String   @default("password_reset")
+  expiresAt  DateTime @map("expires_at")
+  attempts   Int      @default(0)
+  consumed   Boolean  @default(false)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([identifier])
+  @@map("otp_codes")
+}
+
+model Vehicle {
+  id                  String    @id @default(uuid())
+  vin                 String?   @unique
+  plateNumber         String    @map("plate_number")
+  emirateRegistered   String    @map("emirate_registered")
+  make                String
+  model               String
+  year                Int
+  bodyType            String?   @map("body_type")
+  fuelType            String?   @map("fuel_type")
+  transmission         String?
+  gccSpec             Boolean   @default(true) @map("gcc_spec")
+  color               String?
+  mileageKm           Int?      @map("mileage_km")
+  primaryPhotoUrl     String?   @map("primary_photo_url")
+  healthScore         Int?      @map("health_score")
+  healthScoreUpdatedAt DateTime? @map("health_score_updated_at")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  owners        VehicleOwner[]
+  documents     VehicleDocument[]
+  inspections   Inspection[]
+  bookings      Booking[]
+
+  @@map("vehicles")
+}
+
+model VehicleOwner {
+  id            String        @id @default(uuid())
+  vehicleId     String        @map("vehicle_id")
+  userId        String        @map("user_id")
+  ownershipType OwnershipType @default(personal) @map("ownership_type")
+  isPrimary     Boolean       @default(true) @map("is_primary")
+  addedAt       DateTime      @default(now()) @map("added_at")
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@unique([vehicleId, userId])
+  @@map("vehicle_owners")
+}
+
+model VehicleDocument {
+  id         String       @id @default(uuid())
+  vehicleId  String       @map("vehicle_id")
+  type       DocumentType
+  fileUrl    String       @map("file_url")
+  issuedDate DateTime?    @map("issued_date")
+  expiryDate DateTime?    @map("expiry_date")
+  uploadedBy String?      @map("uploaded_by")
+  verified   Boolean      @default(false)
+  createdAt  DateTime     @default(now()) @map("created_at")
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id])
+
+  @@index([vehicleId, expiryDate])
+  @@map("vehicle_documents")
+}
+
+model Partner {
+  id               String        @id @default(uuid())
+  businessName     String        @map("business_name")
+  partnerType      PartnerType   @map("partner_type")
+  status           PartnerStatus @default(pending)
+  contactPhone     String?       @map("contact_phone")
+  contactEmail     String?       @map("contact_email")
+  tradeLicenseUrl  String?       @map("trade_license_url")
+  ratingAvg        Float         @default(0) @map("rating_avg")
+  cancellationRate Float         @default(0) @map("cancellation_rate")
+  latitude         Float?
+  longitude        Float?
+  verifiedAt       DateTime?     @map("verified_at")
+  createdAt        DateTime      @default(now()) @map("created_at")
+
+  services      PartnerService[]
+  inspections   Inspection[]
+  bookings      Booking[]
+  reviews       Review[]
+
+  @@map("partners")
+}
+
+model PartnerService {
+  id                     String  @id @default(uuid())
+  partnerId              String  @map("partner_id")
+  serviceCategory        String  @map("service_category")
+  price                  Float
+  durationEstimateMinutes Int?   @map("duration_estimate_minutes")
+  active                 Boolean @default(true)
+
+  partner Partner @relation(fields: [partnerId], references: [id])
+
+  @@index([partnerId, serviceCategory])
+  @@map("partner_services")
+}
+
+model Inspection {
+  id               String            @id @default(uuid())
+  vehicleId        String?           @map("vehicle_id")
+  requesterId      String            @map("requester_id")
+  inspectorId      String?           @map("inspector_id")
+  rawPlateNumber   String?           @map("raw_plate_number")
+  rawMakeModelYear String?           @map("raw_make_model_year")
+  status           InspectionStatus  @default(booked)
+  scheduledAt      DateTime          @map("scheduled_at")
+  locationLat      Float?            @map("location_lat")
+  locationLng      Float?            @map("location_lng")
+  locationAddress  String?           @map("location_address")
+  priceAmount      Float             @map("price_amount")
+  currency         String            @default("AED")
+  paymentId        String?           @map("payment_id")
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+
+  vehicle     Vehicle?              @relation(fields: [vehicleId], references: [id])
+  requester   User                  @relation("InspectionRequester", fields: [requesterId], references: [id])
+  inspector   Partner?              @relation(fields: [inspectorId], references: [id])
+  checkpoints InspectionCheckpoint[]
+  media       InspectionMedia[]
+  report      InspectionReport?
+
+  @@index([status, scheduledAt])
+  @@map("inspections")
+}
+
+model InspectionCheckpoint {
+  id            String             @id @default(uuid())
+  inspectionId  String             @map("inspection_id")
+  category      CheckpointCategory
+  checkpointName String            @map("checkpoint_name")
+  result        CheckpointResult   @default(pass)
+  notes         String?
+
+  inspection Inspection @relation(fields: [inspectionId], references: [id])
+  media      InspectionMedia[]
+
+  @@index([inspectionId, category])
+  @@map("inspection_checkpoints")
+}
+
+model InspectionMedia {
+  id           String     @id @default(uuid())
+  inspectionId String     @map("inspection_id")
+  checkpointId String?    @map("checkpoint_id")
+  type         MediaType
+  fileUrl      String     @map("file_url")
+  capturedAt   DateTime   @default(now()) @map("captured_at")
+
+  inspection Inspection            @relation(fields: [inspectionId], references: [id])
+  checkpoint InspectionCheckpoint? @relation(fields: [checkpointId], references: [id])
+
+  @@map("inspection_media")
+}
+
+model InspectionReport {
+  id                  String            @id @default(uuid())
+  inspectionId        String            @unique @map("inspection_id")
+  overallScore         Float             @map("overall_score")
+  overallStatus        OverallStatus     @map("overall_status")
+  categoryScores       Json              @map("category_scores")
+  criticalDefectCount  Int               @default(0) @map("critical_defect_count")
+  minorDefectCount     Int               @default(0) @map("minor_defect_count")
+  estimatedRepairCost  Float             @default(0) @map("estimated_repair_cost")
+  aiSummary            String?           @map("ai_summary")
+  aiRecommendation     AiRecommendation? @map("ai_recommendation")
+  obdData              Json?             @map("obd_data")
+  roadTestNotes        String?           @map("road_test_notes")
+  generatedAt          DateTime          @default(now()) @map("generated_at")
+
+  inspection Inspection @relation(fields: [inspectionId], references: [id])
+
+  @@map("inspection_reports")
+}
+
+model Booking {
+  id                     String        @id @default(uuid())
+  bookingType            BookingType   @map("booking_type")
+  vehicleId              String        @map("vehicle_id")
+  customerId             String        @map("customer_id")
+  partnerId              String?       @map("partner_id")
+  serviceCategory        String?       @map("service_category")
+  status                 BookingStatus @default(pending)
+  scheduledAt            DateTime      @map("scheduled_at")
+  pickupDeliveryRequested Boolean      @default(false) @map("pickup_delivery_requested")
+  totalAmount            Float         @map("total_amount")
+  currency               String        @default("AED")
+  paymentId              String?       @map("payment_id")
+  createdAt              DateTime      @default(now()) @map("created_at")
+  updatedAt              DateTime      @updatedAt @map("updated_at")
+
+  vehicle        Vehicle @relation(fields: [vehicleId], references: [id])
+  customer       User    @relation("BookingCustomer", fields: [customerId], references: [id])
+  partner        Partner? @relation(fields: [partnerId], references: [id])
+  statusHistory  BookingStatusHistory[]
+  review         Review?
+
+  @@index([status, scheduledAt])
+  @@map("bookings")
+}
+
+model BookingStatusHistory {
+  id        String        @id @default(uuid())
+  bookingId String        @map("booking_id")
+  status    BookingStatus
+  changedBy String?       @map("changed_by")
+  changedAt DateTime      @default(now()) @map("changed_at")
+
+  booking Booking @relation(fields: [bookingId], references: [id])
+
+  @@map("booking_status_history")
+}
+
+model Payment {
+  id                String            @id @default(uuid())
+  relatedEntityType RelatedEntityType @map("related_entity_type")
+  relatedEntityId   String            @map("related_entity_id")
+  customerId        String            @map("customer_id")
+  amount            Float
+  currency          String            @default("AED")
+  vatAmount         Float             @default(0) @map("vat_amount")
+  paymentMethod     PaymentMethod     @map("payment_method")
+  provider          PaymentProvider   @default(none)
+  providerReference String?           @map("provider_reference")
+  status            PaymentStatus     @default(pending)
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+
+  @@index([customerId])
+  @@map("payments")
+}
+
+model Notification {
+  id                String   @id @default(uuid())
+  userId            String   @map("user_id")
+  category          String
+  channel           NotificationChannel
+  title             String
+  body              String
+  relatedEntityType String?  @map("related_entity_type")
+  relatedEntityId   String?  @map("related_entity_id")
+  readAt            DateTime? @map("read_at")
+  sentAt            DateTime  @default(now()) @map("sent_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, readAt])
+  @@map("notifications")
+}
+
+model NotificationPreference {
+  id       String              @id @default(uuid())
+  userId   String              @map("user_id")
+  category String
+  channel  NotificationChannel
+  enabled  Boolean             @default(true)
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, category, channel])
+  @@map("notification_preferences")
+}
+
+model AiConversation {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  vehicleId String?  @map("vehicle_id")
+  startedAt DateTime @default(now()) @map("started_at")
+
+  user     User        @relation(fields: [userId], references: [id])
+  messages AiMessage[]
+
+  @@map("ai_conversations")
+}
+
+model AiMessage {
+  id                  String            @id @default(uuid())
+  conversationId      String            @map("conversation_id")
+  role                ConversationRole
+  content             String
+  referencedEntityType String?          @map("referenced_entity_type")
+  referencedEntityId  String?           @map("referenced_entity_id")
+  createdAt           DateTime          @default(now()) @map("created_at")
+
+  conversation AiConversation @relation(fields: [conversationId], references: [id])
+
+  @@map("ai_messages")
+}
+
+model Review {
+  id        String  @id @default(uuid())
+  bookingId String  @unique @map("booking_id")
+  reviewerId String @map("reviewer_id")
+  partnerId String  @map("partner_id")
+  rating    Int
+  comment   String?
+
+  booking  Booking @relation(fields: [bookingId], references: [id])
+  reviewer User    @relation(fields: [reviewerId], references: [id])
+  partner  Partner @relation(fields: [partnerId], references: [id])
+
+  @@map("reviews")
+}
+
+model RewardsAccount {
+  id            String @id @default(uuid())
+  userId        String @unique @map("user_id")
+  pointsBalance Int    @default(0) @map("points_balance")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("rewards_accounts")
+}
+
+model SupportTicket {
+  id       String   @id @default(uuid())
+  userId   String   @map("user_id")
+  category String
+  subject  String
+  status   String   @default("open")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("support_tickets")
+}
+
+model AdminAuditLog {
+  id           String   @id @default(uuid())
+  adminUserId  String   @map("admin_user_id")
+  action       String
+  entityType   String   @map("entity_type")
+  entityId     String   @map("entity_id")
+  beforeState  Json?    @map("before_state")
+  afterState   Json?    @map("after_state")
+  ipAddress    String?  @map("ip_address")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("admin_audit_log")
+}

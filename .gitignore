@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+
+# Environment / secrets
+.env
+.env.local
+*.pem
+
+# Backend (NestJS)
+backend/dist/
+backend/coverage/
+
+# Admin (Vite)
+admin/dist/
+
+# Mobile (Flutter) — android/, ios/, and web/ ARE committed: they contain
+# real hand-verified fixes (cleartext traffic, Kotlin incremental build,
+# app icons/branding), not disposable `flutter create` scaffolding. Only
+# their own build-artifact subdirectories are ignored (see mobile/.gitignore
+# for the fine-grained rules: android/.gradle/, ios/Pods/, etc).
+mobile/build/
+mobile/.dart_tool/
+mobile/.flutter-plugins
+mobile/.flutter-plugins-dependencies
+mobile/linux/
+mobile/macos/
+mobile/windows/
+mobile/*.iml
+mobile/.idea/
+
+# Brand asset tooling
+brand/tools/node_modules/
+
+# Built app binaries — large and rebuildable; distribute via GitHub Releases
+# instead of committing to the repo.
+releases/*.apk
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

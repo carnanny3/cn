@@ -1,0 +1,19 @@
+# Flutter/Dart
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+*.iml
+*.g.dart
+
+# IDE
+.idea/
+.vscode/
+
+# Platform build outputs (keep the platform folders themselves once generated)
+android/.gradle/
+android/app/build/
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework

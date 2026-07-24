@@ -1,0 +1,17 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: car-nanny-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: car_nanny
+      POSTGRES_PASSWORD: car_nanny_dev_password
+      POSTGRES_DB: car_nanny
+    ports:
+      - '5432:5432'
+    volumes:
+      - car_nanny_pg_data:/var/lib/postgresql/data
+
+volumes:
+  car_nanny_pg_data:
