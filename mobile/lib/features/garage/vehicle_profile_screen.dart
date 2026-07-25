@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/glass_card.dart';
 import '../../core/widgets/gradient_background.dart';
 import '../../core/widgets/status_badge.dart';
@@ -22,6 +23,10 @@ class _VehicleProfileScreenState extends State<VehicleProfileScreen> {
   @override
   void initState() {
     super.initState();
+    _reload();
+  }
+
+  void _reload() {
     _healthFuture = context.read<GarageRepository>().fetchHealthScore(widget.vehicleId);
   }
 
@@ -40,8 +45,17 @@ class _VehicleProfileScreenState extends State<VehicleProfileScreen> {
           child: FutureBuilder<HealthScoreBreakdown>(
             future: _healthFuture,
             builder: (context, snapshot) {
-              if (!snapshot.hasData) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
+              }
+              if (snapshot.hasError) {
+                return EmptyState(
+                  icon: Icons.wifi_off,
+                  title: 'Could not load health score',
+                  message: 'Check your connection to the server and try again.',
+                  actionLabel: 'Retry',
+                  onAction: () => setState(_reload),
+                );
               }
               final health = snapshot.data!;
               return ListView(

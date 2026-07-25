@@ -12,6 +12,7 @@ class MainShell extends StatelessWidget {
     (icon: Icons.home_outlined, selectedIcon: Icons.home, label: 'Home'),
     (icon: Icons.garage_outlined, selectedIcon: Icons.garage, label: 'Garage'),
     (icon: Icons.build_outlined, selectedIcon: Icons.build, label: 'Services'),
+    (icon: Icons.receipt_long_outlined, selectedIcon: Icons.receipt_long, label: 'Bookings'),
     (icon: Icons.smart_toy_outlined, selectedIcon: Icons.smart_toy, label: 'AI'),
     (icon: Icons.person_outline, selectedIcon: Icons.person, label: 'Profile'),
   ];

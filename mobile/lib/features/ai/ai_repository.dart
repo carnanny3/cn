@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import '../../core/api/api_client.dart';
 import 'ai_message_model.dart';
 
@@ -18,19 +17,11 @@ class AiRepository {
   }
 
   Future<AiMessage> sendMessage(String content, {String? vehicleId}) async {
-    try {
-      final conversationId = await _ensureConversation(vehicleId: vehicleId);
-      final response = await apiClient.dio.post(
-        '/ai/conversations/$conversationId/messages',
-        data: {'content': content, if (vehicleId != null) 'vehicleId': vehicleId},
-      );
-      return AiMessage.fromJson(response.data as Map<String, dynamic>);
-    } on DioException {
-      return AiMessage(
-        role: 'assistant',
-        content:
-            "I'm running in offline demo mode right now, so I can't reach your real vehicle data — but once connected, I can answer questions about your service schedule, warranty, insurance, or inspection reports.\n\nThis is AI-generated guidance and not a substitute for professional mechanical, legal, or financial advice.",
-      );
-    }
+    final conversationId = await _ensureConversation(vehicleId: vehicleId);
+    final response = await apiClient.dio.post(
+      '/ai/conversations/$conversationId/messages',
+      data: {'content': content, if (vehicleId != null) 'vehicleId': vehicleId},
+    );
+    return AiMessage.fromJson(response.data as Map<String, dynamic>);
   }
 }

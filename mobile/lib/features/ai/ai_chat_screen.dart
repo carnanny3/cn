@@ -54,12 +54,21 @@ class _AiChatScreenState extends State<AiChatScreen> {
       _controller.clear();
     });
 
-    final reply = await context.read<AiRepository>().sendMessage(content, vehicleId: _primaryVehicleId);
-
-    setState(() {
-      _messages.add(reply);
-      _sending = false;
-    });
+    try {
+      final reply = await context.read<AiRepository>().sendMessage(content, vehicleId: _primaryVehicleId);
+      setState(() {
+        _messages.add(reply);
+        _sending = false;
+      });
+    } catch (_) {
+      setState(() {
+        _messages.add(AiMessage(
+          role: 'assistant',
+          content: "Couldn't reach the assistant. Check your connection and try again.",
+        ));
+        _sending = false;
+      });
+    }
   }
 
   @override

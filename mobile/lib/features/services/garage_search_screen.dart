@@ -24,6 +24,10 @@ class _GarageSearchScreenState extends State<GarageSearchScreen> {
   @override
   void initState() {
     super.initState();
+    _reload();
+  }
+
+  void _reload() {
     _resultsFuture = context.read<ServicesRepository>().searchGarages(widget.serviceCategory);
   }
 
@@ -74,8 +78,17 @@ class _GarageSearchScreenState extends State<GarageSearchScreen> {
           child: FutureBuilder<List<PartnerResult>>(
             future: _resultsFuture,
             builder: (context, snapshot) {
-              if (!snapshot.hasData) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
+              }
+              if (snapshot.hasError) {
+                return EmptyState(
+                  icon: Icons.wifi_off,
+                  title: 'Could not search garages',
+                  message: 'Check your connection to the server and try again.',
+                  actionLabel: 'Retry',
+                  onAction: () => setState(_reload),
+                );
               }
               final results = snapshot.data!;
               if (results.isEmpty) {

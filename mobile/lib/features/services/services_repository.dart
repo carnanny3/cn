@@ -1,5 +1,5 @@
-import 'package:dio/dio.dart';
 import '../../core/api/api_client.dart';
+import '../bookings/booking_model.dart';
 import 'partner_model.dart';
 
 class ServicesRepository {
@@ -18,20 +18,14 @@ class ServicesRepository {
   };
 
   Future<List<PartnerResult>> searchGarages(String serviceCategory, {double? lat, double? lng}) async {
-    try {
-      final response = await apiClient.dio.get('/partners/search', queryParameters: {
-        'serviceCategory': serviceCategory,
-        if (lat != null) 'lat': lat,
-        if (lng != null) 'lng': lng,
-      });
-      return (response.data as List)
-          .map((e) => PartnerResult.fromJson(e as Map<String, dynamic>))
-          .toList();
-    } on DioException {
-      return [
-        PartnerResult(id: 'demo-garage-1', businessName: 'Al Fahim Auto Care', ratingAvg: 4.8, price: 180, distanceKm: 3.2, durationEstimateMinutes: 45),
-      ];
-    }
+    final response = await apiClient.dio.get('/partners/search', queryParameters: {
+      'serviceCategory': serviceCategory,
+      if (lat != null) 'lat': lat,
+      if (lng != null) 'lng': lng,
+    });
+    return (response.data as List)
+        .map((e) => PartnerResult.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   Future<Map<String, dynamic>> createBooking({
@@ -55,12 +49,12 @@ class ServicesRepository {
     return response.data as Map<String, dynamic>;
   }
 
-  Future<List<Map<String, dynamic>>> fetchBookings() async {
-    try {
-      final response = await apiClient.dio.get('/bookings');
-      return List<Map<String, dynamic>>.from(response.data as List);
-    } on DioException {
-      return [];
-    }
+  Future<List<Booking>> fetchBookings() async {
+    final response = await apiClient.dio.get('/bookings');
+    return (response.data as List).map((e) => Booking.fromJson(e as Map<String, dynamic>)).toList();
+  }
+
+  Future<void> cancelBooking(String id) async {
+    await apiClient.dio.post('/bookings/$id/cancel');
   }
 }

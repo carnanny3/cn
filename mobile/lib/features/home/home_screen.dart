@@ -21,6 +21,10 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    _reload();
+  }
+
+  void _reload() {
     _vehiclesFuture = context.read<GarageRepository>().fetchVehicles();
   }
 
@@ -44,8 +48,17 @@ class _HomeScreenState extends State<HomeScreen> {
           child: FutureBuilder<List<Vehicle>>(
             future: _vehiclesFuture,
             builder: (context, snapshot) {
-              if (!snapshot.hasData) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
+              }
+              if (snapshot.hasError) {
+                return EmptyState(
+                  icon: Icons.wifi_off,
+                  title: 'Could not reach Car Nanny',
+                  message: 'Check your connection to the server and try again.',
+                  actionLabel: 'Retry',
+                  onAction: () => setState(_reload),
+                );
               }
               final vehicles = snapshot.data!;
               if (vehicles.isEmpty) {

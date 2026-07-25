@@ -47,8 +47,17 @@ class _GarageListScreenState extends State<GarageListScreen> {
           child: FutureBuilder<List<Vehicle>>(
             future: _vehiclesFuture,
             builder: (context, snapshot) {
-              if (!snapshot.hasData) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
+              }
+              if (snapshot.hasError) {
+                return EmptyState(
+                  icon: Icons.wifi_off,
+                  title: 'Could not load your garage',
+                  message: 'Check your connection to the server and try again.',
+                  actionLabel: 'Retry',
+                  onAction: () => setState(_reload),
+                );
               }
               final vehicles = snapshot.data!;
               if (vehicles.isEmpty) {

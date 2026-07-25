@@ -2,6 +2,7 @@ import 'package:go_router/go_router.dart';
 import '../features/ai/ai_chat_screen.dart';
 import '../features/auth/auth_screen.dart';
 import '../features/auth/forgot_password_screen.dart';
+import '../features/bookings/bookings_list_screen.dart';
 import '../features/garage/add_vehicle_screen.dart';
 import '../features/garage/garage_list_screen.dart';
 import '../features/garage/vehicle_profile_screen.dart';
@@ -49,6 +50,7 @@ GoRouter buildRouter(AuthState authState) {
           StatefulShellBranch(routes: [GoRoute(path: '/home', builder: (context, state) => const HomeScreen())]),
           StatefulShellBranch(routes: [GoRoute(path: '/garage', builder: (context, state) => const GarageListScreen())]),
           StatefulShellBranch(routes: [GoRoute(path: '/services', builder: (context, state) => const ServicesHomeScreen())]),
+          StatefulShellBranch(routes: [GoRoute(path: '/bookings', builder: (context, state) => const BookingsListScreen())]),
           StatefulShellBranch(routes: [GoRoute(path: '/ai', builder: (context, state) => const AiChatScreen())]),
           StatefulShellBranch(routes: [GoRoute(path: '/profile', builder: (context, state) => const ProfileScreen())]),
         ],

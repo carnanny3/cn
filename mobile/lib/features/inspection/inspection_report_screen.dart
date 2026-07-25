@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/glass_card.dart';
 import '../../core/widgets/gradient_background.dart';
 import '../../core/widgets/status_badge.dart';
@@ -22,6 +23,10 @@ class _InspectionReportScreenState extends State<InspectionReportScreen> {
   @override
   void initState() {
     super.initState();
+    _reload();
+  }
+
+  void _reload() {
     _reportFuture = context.read<InspectionRepository>().fetchReport(widget.inspectionId);
   }
 
@@ -37,8 +42,14 @@ class _InspectionReportScreenState extends State<InspectionReportScreen> {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
               }
-              if (!snapshot.hasData) {
-                return const Center(child: Text('Report being generated — check back shortly.'));
+              if (snapshot.hasError) {
+                return EmptyState(
+                  icon: Icons.hourglass_empty,
+                  title: 'Report not available yet',
+                  message: 'The report may still be generating, or the connection to the server failed. Try again shortly.',
+                  actionLabel: 'Retry',
+                  onAction: () => setState(_reload),
+                );
               }
               final report = snapshot.data!;
               return ListView(

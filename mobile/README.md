@@ -51,18 +51,20 @@ platform-tools, platforms 35/36, build-tools 35.0.0/28.0.3 — none of that was
 installed initially) and produced a working signed release APK via
 `flutter build apk --release --dart-define=API_BASE_URL=http://<your-lan-ip>:3000/api/v1`.
 
-Two real issues surfaced doing this that are now fixed and worth knowing about:
+Several real issues surfaced doing this, now fixed, worth knowing about:
 
-- **`android:usesCleartextTraffic="true"`** is set in `android/app/src/main/AndroidManifest.xml`. Without it, Android silently blocks all plain `http://` traffic for apps targeting API 28+ (we target 36) — the app fails with a generic "connection failed" error that looks identical to a wrong-IP or firewall problem, which cost real debugging time. **This must be removed (or replaced with a proper `network_security_config.xml` scoped to specific trusted hosts) once the backend is served over HTTPS** — leaving a blanket cleartext allowance in a production release is a real security regression.
-- **A real device on your Wi-Fi cannot reach `localhost` or `10.0.2.2`** — those only resolve to "the device itself" (phone) or "the host machine, from an emulator" respectively. A physical phone needs your PC's actual LAN IP (`ipconfig` / `Get-NetIPAddress`, the Wi-Fi adapter's IPv4 address), and **that address is DHCP-assigned and can change** (observed changing mid-session here) — if a previously-working APK suddenly can't connect, re-check the current IP before assuming anything else is broken. A DHCP reservation on your router fixes this permanently.
+- **`android.permission.INTERNET` was missing from `AndroidManifest.xml` entirely.** This is the actual root cause of every "Connection failed" / "Failed host lookup" error seen on a real device throughout this project's history — without it, Android blocks all network access at the OS level regardless of URL, cleartext settings, or IP address. Both fixes below were real but masked this deeper bug; always check for this permission first on a fresh Flutter Android project.
+- The app now targets a deployed HTTPS backend (Railway), so the cleartext-traffic workaround that was needed for local `http://<lan-ip>` testing has been removed. If you go back to testing against a local `http://` backend, you'll need to re-add `android:usesCleartextTraffic="true"` temporarily — see git history for the exact change, and remove it again before any release build.
+- **A real device on your Wi-Fi cannot reach `localhost` or `10.0.2.2`** — those only resolve to "the device itself" (phone) or "the host machine, from an emulator" respectively. Only relevant when testing against a local backend instead of the deployed one.
 
-## Demo mode
+## Error handling
 
-Several screens (Home, My Garage, Inspection Report, Garage Search, AI
-Assistant) fall back to realistic demo data if the backend can't be reached,
-so you can see every screen even before the API is running. Actions that
-write data (adding a vehicle, booking an inspection/service) require a live
-backend and will show an error otherwise.
+No screen falls back to fake demo data if the backend is unreachable —
+every screen that fetches data (Home, My Garage, Vehicle Health, Inspection
+Report, Garage Search, AI Assistant, Bookings) shows a real "could not
+connect" error with a Retry button instead. This was a deliberate fix: silent
+demo-data fallbacks previously made a broken backend connection invisible to
+the user, which was confusing in practice.
 
 ## Structure
 
