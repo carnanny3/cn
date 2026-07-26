@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../core/api/api_client.dart';
 import '../../core/state/auth_state.dart';
@@ -195,15 +196,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    const GlassCard(
+                    GlassCard(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          _MenuRow(icon: Icons.credit_card_outlined, label: 'Payment Methods'),
-                          _MenuRow(icon: Icons.notifications_outlined, label: 'Notification Preferences'),
-                          _MenuRow(icon: Icons.language_outlined, label: 'Language & Region'),
-                          _MenuRow(icon: Icons.card_giftcard_outlined, label: 'Rewards & Referrals'),
-                          _MenuRow(icon: Icons.help_outline, label: 'Support'),
+                          const _MenuRow(icon: Icons.credit_card_outlined, label: 'Payment Methods'),
+                          const _MenuRow(icon: Icons.notifications_outlined, label: 'Notification Preferences'),
+                          const _MenuRow(icon: Icons.language_outlined, label: 'Language & Region'),
+                          _MenuRow(
+                            icon: Icons.card_giftcard_outlined,
+                            label: 'Rewards & Referrals',
+                            onTap: () => context.push('/rewards'),
+                          ),
+                          _MenuRow(icon: Icons.help_outline, label: 'Support', onTap: () => context.push('/support')),
                         ],
                       ),
                     ),
@@ -228,22 +233,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
 }
 
 class _MenuRow extends StatelessWidget {
-  const _MenuRow({required this.icon, required this.label});
+  const _MenuRow({required this.icon, required this.label, this.onTap});
 
   final IconData icon;
   final String label;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        children: [
-          Icon(icon, color: AppColors.textSecondary, size: 20),
-          const SizedBox(width: 14),
-          Expanded(child: Text(label, style: Theme.of(context).textTheme.bodyLarge)),
-          const Icon(Icons.chevron_right, color: AppColors.textSecondary),
-        ],
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: Row(
+          children: [
+            Icon(icon, color: AppColors.textSecondary, size: 20),
+            const SizedBox(width: 14),
+            Expanded(child: Text(label, style: Theme.of(context).textTheme.bodyLarge)),
+            const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+          ],
+        ),
       ),
     );
   }

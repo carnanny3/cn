@@ -16,6 +16,16 @@ export function generateOpaqueToken(): string {
   return randomBytes(32).toString('hex');
 }
 
+const REFERRAL_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no 0/O/1/I, avoids visual ambiguity
+
+export function generateReferralCode(length = 7): string {
+  let code = '';
+  for (let i = 0; i < length; i++) {
+    code += REFERRAL_CODE_ALPHABET[randomInt(0, REFERRAL_CODE_ALPHABET.length)];
+  }
+  return code;
+}
+
 const SCRYPT_KEYLEN = 64;
 
 /** Password hashing via Node's built-in scrypt — no native module/build step required. */

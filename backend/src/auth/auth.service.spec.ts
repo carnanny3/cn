@@ -3,6 +3,7 @@ import { ConflictException, UnauthorizedException, BadRequestException } from '@
 import { JwtService } from '@nestjs/jwt';
 import { AuthService } from './auth.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { RewardsService } from '../rewards/rewards.service';
 import { hashPassword, hashValue } from '../common/crypto.util';
 
 describe('AuthService', () => {
@@ -35,7 +36,12 @@ describe('AuthService', () => {
     };
 
     const moduleRef = await Test.createTestingModule({
-      providers: [AuthService, { provide: PrismaService, useValue: prisma }, JwtService],
+      providers: [
+        AuthService,
+        { provide: PrismaService, useValue: prisma },
+        JwtService,
+        { provide: RewardsService, useValue: { redeemReferralCode: jest.fn() } },
+      ],
     }).compile();
 
     service = moduleRef.get(AuthService);

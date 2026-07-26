@@ -1,6 +1,10 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AdminService } from './admin.service';
+import { SupportService } from '../support/support.service';
+import { UpdateTicketStatusDto } from '../support/dto/update-ticket-status.dto';
+import { AddTicketMessageDto } from '../support/dto/add-ticket-message.dto';
+import { CurrentUser, JwtPayload } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 
 const ANY_ADMIN = [
@@ -20,11 +24,34 @@ const ANY_ADMIN = [
 @Roles(...ANY_ADMIN)
 @Controller('admin')
 export class AdminController {
-  constructor(private readonly adminService: AdminService) {}
+  constructor(
+    private readonly adminService: AdminService,
+    private readonly supportService: SupportService,
+  ) {}
 
   @Get('summary')
   summary() {
     return this.adminService.dashboardSummary();
+  }
+
+  @Get('support-tickets')
+  listSupportTickets(@Query('status') status?: string) {
+    return this.supportService.listAllTickets(status);
+  }
+
+  @Get('support-tickets/:id')
+  getSupportTicket(@Param('id') id: string) {
+    return this.supportService.getTicket(null, id);
+  }
+
+  @Post('support-tickets/:id/messages')
+  replyToTicket(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Body() dto: AddTicketMessageDto) {
+    return this.supportService.addMessage(user.sub, user.role, id, dto.content);
+  }
+
+  @Patch('support-tickets/:id/status')
+  updateTicketStatus(@Param('id') id: string, @Body() dto: UpdateTicketStatusDto) {
+    return this.supportService.updateStatus(id, dto.status, dto.assignedAdminId);
   }
 
   @Get('users')

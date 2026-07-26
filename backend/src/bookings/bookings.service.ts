@@ -2,6 +2,7 @@ import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/commo
 import { PrismaService } from '../prisma/prisma.service';
 import { PartnersService } from '../partners/partners.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { RewardsService } from '../rewards/rewards.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 
 @Injectable()
@@ -10,6 +11,7 @@ export class BookingsService {
     private readonly prisma: PrismaService,
     private readonly partnersService: PartnersService,
     private readonly notificationsService: NotificationsService,
+    private readonly rewardsService: RewardsService,
   ) {}
 
   async create(customerId: string, dto: CreateBookingDto) {
@@ -113,6 +115,10 @@ export class BookingsService {
       relatedEntityType: 'booking',
       relatedEntityId: booking.id,
     });
+
+    if (status === 'completed') {
+      await this.rewardsService.onBookingCompleted(booking.customerId, booking.totalAmount);
+    }
 
     return booking;
   }

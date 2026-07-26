@@ -54,7 +54,7 @@ class AuthState extends ChangeNotifier {
     }
   }
 
-  Future<bool> register(String email, String password, String fullName, {String? phoneNumber}) async {
+  Future<bool> register(String email, String password, String fullName, {String? phoneNumber, String? referralCode}) async {
     lastError = null;
     try {
       final response = await apiClient.dio.post('/auth/register', data: {
@@ -62,6 +62,7 @@ class AuthState extends ChangeNotifier {
         'password': password,
         'fullName': fullName,
         if (phoneNumber != null && phoneNumber.isNotEmpty) 'phoneNumber': phoneNumber,
+        if (referralCode != null && referralCode.isNotEmpty) 'referralCode': referralCode,
       });
       await _persistTokens(response.data as Map<String, dynamic>);
       status = AuthStatus.signedIn;

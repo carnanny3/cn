@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
+import { RewardsService } from '../rewards/rewards.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
@@ -29,6 +30,7 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
+    private readonly rewardsService: RewardsService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -59,6 +61,10 @@ export class AuthService {
         status: 'active',
       },
     });
+
+    if (dto.referralCode) {
+      await this.rewardsService.redeemReferralCode(user.id, dto.referralCode);
+    }
 
     return this.issueTokens(user.id, user.role, user.email);
   }

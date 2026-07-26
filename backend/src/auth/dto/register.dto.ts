@@ -15,4 +15,8 @@ export class RegisterDto {
   @IsOptional()
   @IsPhoneNumber(undefined, { message: 'phoneNumber must be a valid phone number in international format, e.g. +9715XXXXXXXX' })
   phoneNumber?: string;
+
+  @IsOptional()
+  @IsString()
+  referralCode?: string;
 }

@@ -22,6 +22,7 @@ class _AuthScreenState extends State<AuthScreen> {
   final _passwordController = TextEditingController();
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _referralCodeController = TextEditingController();
 
   @override
   void dispose() {
@@ -29,6 +30,7 @@ class _AuthScreenState extends State<AuthScreen> {
     _passwordController.dispose();
     _nameController.dispose();
     _phoneController.dispose();
+    _referralCodeController.dispose();
     super.dispose();
   }
 
@@ -41,6 +43,7 @@ class _AuthScreenState extends State<AuthScreen> {
             _passwordController.text,
             _nameController.text.trim(),
             phoneNumber: _phoneController.text.trim(),
+            referralCode: _referralCodeController.text.trim(),
           )
         : await auth.login(_emailController.text.trim(), _passwordController.text);
     if (!mounted) return;
@@ -134,6 +137,13 @@ class _AuthScreenState extends State<AuthScreen> {
                           keyboardType: TextInputType.phone,
                           style: const TextStyle(color: AppColors.textPrimary),
                           decoration: const InputDecoration(labelText: 'Phone number (optional)'),
+                        ),
+                        const SizedBox(height: 14),
+                        TextField(
+                          controller: _referralCodeController,
+                          textCapitalization: TextCapitalization.characters,
+                          style: const TextStyle(color: AppColors.textPrimary),
+                          decoration: const InputDecoration(labelText: 'Referral code (optional)'),
                         ),
                       ],
                       if (!_isRegister) ...[
