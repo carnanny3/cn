@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsDateString, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { IsDateString, IsDefined, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
 
 class LocationDto {
   @IsNumber()
@@ -26,6 +26,7 @@ export class BookInspectionDto {
   @IsString()
   makeModelYear?: string;
 
+  @IsDefined()
   @ValidateNested()
   @Type(() => LocationDto)
   location!: LocationDto;
