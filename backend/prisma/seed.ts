@@ -174,6 +174,39 @@ async function main() {
     },
   });
 
+  const warrantyProviderPartner = await prisma.partner.upsert({
+    where: { id: 'seed-partner-warranty' },
+    update: {},
+    create: {
+      id: 'seed-partner-warranty',
+      businessName: 'Gulf Shield Warranty Co.',
+      partnerType: 'warranty_provider',
+      status: 'verified',
+      contactEmail: 'claims@gulfshield.example',
+      verifiedAt: new Date(),
+    },
+  });
+
+  await prisma.warrantyPlan.upsert({
+    where: { id: 'seed-warranty-plan-standard' },
+    update: {},
+    create: {
+      id: 'seed-warranty-plan-standard',
+      providerPartnerId: warrantyProviderPartner.id,
+      name: 'Standard 12-Month Powertrain Warranty',
+      coverageSummary: 'Covers engine, transmission, and drivetrain repairs for 12 months.',
+      exclusions: 'Wear-and-tear items (brake pads, tires), cosmetic damage, and pre-existing conditions are not covered.',
+      price: 899,
+      eligibilityRules: { maxAgeYears: 8, maxMileageKm: 150000 },
+    },
+  });
+
+  await prisma.insuranceProvider.upsert({
+    where: { id: 'seed-insurance-provider-1' },
+    update: {},
+    create: { id: 'seed-insurance-provider-1', name: 'Al Noor Insurance', integrationType: 'manual' },
+  });
+
   console.log('Seed complete.');
   console.log(`Sample customer: ${customer.email} / password: ${SEED_PASSWORD}`);
   console.log(`Sample admin: ${admin.email} / password: ${SEED_PASSWORD}`);

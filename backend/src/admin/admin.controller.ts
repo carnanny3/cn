@@ -4,6 +4,10 @@ import { AdminService } from './admin.service';
 import { SupportService } from '../support/support.service';
 import { UpdateTicketStatusDto } from '../support/dto/update-ticket-status.dto';
 import { AddTicketMessageDto } from '../support/dto/add-ticket-message.dto';
+import { WarrantyService } from '../warranty/warranty.service';
+import { UpdateClaimStatusDto } from '../warranty/dto/update-claim-status.dto';
+import { InsuranceService } from '../insurance/insurance.service';
+import { RespondQuoteDto } from '../insurance/dto/respond-quote.dto';
 import { CurrentUser, JwtPayload } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 
@@ -27,6 +31,8 @@ export class AdminController {
   constructor(
     private readonly adminService: AdminService,
     private readonly supportService: SupportService,
+    private readonly warrantyService: WarrantyService,
+    private readonly insuranceService: InsuranceService,
   ) {}
 
   @Get('summary')
@@ -52,6 +58,31 @@ export class AdminController {
   @Patch('support-tickets/:id/status')
   updateTicketStatus(@Param('id') id: string, @Body() dto: UpdateTicketStatusDto) {
     return this.supportService.updateStatus(id, dto.status, dto.assignedAdminId);
+  }
+
+  @Get('warranty-claims')
+  listWarrantyClaims(@Query('status') status?: string) {
+    return this.warrantyService.listAllClaims(status);
+  }
+
+  @Get('warranty-claims/:id')
+  getWarrantyClaim(@Param('id') id: string) {
+    return this.warrantyService.getClaim(null, id);
+  }
+
+  @Patch('warranty-claims/:id/status')
+  updateWarrantyClaimStatus(@Param('id') id: string, @Body() dto: UpdateClaimStatusDto) {
+    return this.warrantyService.updateClaimStatus(id, dto);
+  }
+
+  @Get('insurance-quotes')
+  listInsuranceQuotes(@Query('status') status?: string) {
+    return this.insuranceService.listAllQuotes(status);
+  }
+
+  @Patch('insurance-quotes/:id/respond')
+  respondToQuote(@Param('id') id: string, @Body() dto: RespondQuoteDto) {
+    return this.insuranceService.respondToQuote(id, dto);
   }
 
   @Get('users')

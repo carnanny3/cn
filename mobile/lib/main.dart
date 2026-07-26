@@ -8,12 +8,14 @@ import 'core/state/auth_state.dart';
 import 'core/theme/app_theme.dart';
 import 'features/ai/ai_repository.dart';
 import 'features/garage/garage_repository.dart';
+import 'features/insurance/insurance_repository.dart';
 import 'features/inspection/inspection_repository.dart';
 import 'features/partner/partner_repository.dart';
 import 'features/profile/user_repository.dart';
 import 'features/rewards/rewards_repository.dart';
 import 'features/services/services_repository.dart';
 import 'features/support/support_repository.dart';
+import 'features/warranty/warranty_repository.dart';
 
 void main() {
   runApp(const CarNannyApp());
@@ -55,6 +57,8 @@ class _CarNannyAppState extends State<CarNannyApp> {
         Provider(create: (_) => PartnerRepository(_apiClient)),
         Provider(create: (_) => RewardsRepository(_apiClient)),
         Provider(create: (_) => SupportRepository(_apiClient)),
+        Provider(create: (_) => WarrantyRepository(_apiClient)),
+        Provider(create: (_) => InsuranceRepository(_apiClient)),
       ],
       child: MaterialApp.router(
         title: 'Car Nanny',

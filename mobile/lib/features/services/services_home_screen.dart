@@ -25,28 +25,60 @@ class ServicesHomeScreen extends StatelessWidget {
       appBar: AppBar(backgroundColor: Colors.transparent, title: const Text('Services')),
       body: GradientBackground(
         child: SafeArea(
-          child: GridView.count(
+          child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 96, 16, 120),
-            crossAxisCount: 2,
-            mainAxisSpacing: 12,
-            crossAxisSpacing: 12,
-            childAspectRatio: 1.3,
-            children: ServicesRepository.categories.entries
-                .map(
-                  (entry) => GlassCard(
-                    onTap: () => context.push('/services/${entry.key}'),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Icon(_categoryIcons[entry.key] ?? Icons.build_outlined, size: 28, color: AppColors.goldLight),
-                        const SizedBox(height: 10),
-                        Text(entry.value, style: Theme.of(context).textTheme.bodyLarge),
-                      ],
-                    ),
-                  ),
-                )
-                .toList(),
+            children: [
+              GridView.count(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                crossAxisCount: 2,
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 12,
+                childAspectRatio: 1.3,
+                children: ServicesRepository.categories.entries
+                    .map(
+                      (entry) => GlassCard(
+                        onTap: () => context.push('/services/${entry.key}'),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Icon(_categoryIcons[entry.key] ?? Icons.build_outlined, size: 28, color: AppColors.goldLight),
+                            const SizedBox(height: 10),
+                            Text(entry.value, style: Theme.of(context).textTheme.bodyLarge),
+                          ],
+                        ),
+                      ),
+                    )
+                    .toList(),
+              ),
+              const SizedBox(height: 20),
+              Text('Protect Your Vehicle', style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 12),
+              GlassCard(
+                onTap: () => context.push('/warranty'),
+                child: Row(
+                  children: [
+                    const Icon(Icons.shield_outlined, color: AppColors.goldLight),
+                    const SizedBox(width: 12),
+                    Expanded(child: Text('Warranty Plans', style: Theme.of(context).textTheme.bodyLarge)),
+                    const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              GlassCard(
+                onTap: () => context.push('/insurance'),
+                child: Row(
+                  children: [
+                    const Icon(Icons.security_outlined, color: AppColors.goldLight),
+                    const SizedBox(width: 12),
+                    Expanded(child: Text('Insurance', style: Theme.of(context).textTheme.bodyLarge)),
+                    const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),

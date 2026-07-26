@@ -14,6 +14,8 @@ import { AiModule } from './ai/ai.module';
 import { AdminModule } from './admin/admin.module';
 import { RewardsModule } from './rewards/rewards.module';
 import { SupportModule } from './support/support.module';
+import { WarrantyModule } from './warranty/warranty.module';
+import { InsuranceModule } from './insurance/insurance.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 
@@ -33,6 +35,8 @@ import { RolesGuard } from './common/guards/roles.guard';
     AdminModule,
     RewardsModule,
     SupportModule,
+    WarrantyModule,
+    InsuranceModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },

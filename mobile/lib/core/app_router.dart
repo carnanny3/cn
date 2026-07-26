@@ -15,12 +15,14 @@ import '../features/partner/partner_inspection_checklist_screen.dart';
 import '../features/partner/partner_jobs_screen.dart';
 import '../features/partner/partner_profile_screen.dart';
 import '../features/partner/partner_signup_screen.dart';
+import '../features/insurance/insurance_home_screen.dart';
 import '../features/profile/profile_screen.dart';
 import '../features/rewards/rewards_screen.dart';
 import '../features/services/garage_search_screen.dart';
 import '../features/services/services_home_screen.dart';
 import '../features/support/support_screen.dart';
 import '../features/support/ticket_detail_screen.dart';
+import '../features/warranty/warranty_home_screen.dart';
 import '../shell/main_shell.dart';
 import '../shell/partner_shell.dart';
 import 'state/auth_state.dart';
@@ -68,6 +70,8 @@ GoRouter buildRouter(AuthState authState) {
         builder: (context, state) => PartnerInspectionChecklistScreen(inspectionId: state.pathParameters['id']!),
       ),
       GoRoute(path: '/rewards', builder: (context, state) => const RewardsScreen()),
+      GoRoute(path: '/warranty', builder: (context, state) => const WarrantyHomeScreen()),
+      GoRoute(path: '/insurance', builder: (context, state) => const InsuranceHomeScreen()),
       GoRoute(path: '/support', builder: (context, state) => const SupportScreen()),
       GoRoute(
         path: '/support/:id',
