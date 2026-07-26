@@ -133,16 +133,24 @@ rebuild.
 The admin dashboard (`admin/`) is a static site (React + Vite), so it deploys
 separately from the backend — Netlify's free tier is a good fit.
 
+A `netlify.toml` at the repo root already declares the build settings
+(`base = "admin"`, `command = "npm run build"`, `publish = "dist"`) and the
+SPA redirect rule React Router needs (without it, refreshing any page other
+than the root 404s). Netlify reads this automatically, so the only manual
+steps are creating the site and setting the API URL:
+
 1. Go to [app.netlify.com/signup](https://app.netlify.com/signup) and create
    an account (GitHub sign-in is easiest, same account you used for the
    `cn` repo).
 2. From the Netlify dashboard, click **Add new site** → **Import an existing
    project** → **Deploy with GitHub**.
 3. Authorize Netlify to access GitHub if prompted, then pick the `cn` repo.
-4. On the build settings screen, set:
-   - **Base directory**: `admin`
-   - **Build command**: `npm run build`
-   - **Publish directory**: `admin/dist`
+4. On the build settings screen, leave the fields as Netlify auto-fills them
+   from `netlify.toml` (base `admin`, publish `dist`) — **do not** set
+   Publish directory to `admin/dist` here; since Base directory is already
+   `admin`, Netlify resolves Publish directory relative to it, so `admin/dist`
+   actually points at the non-existent `admin/admin/dist` and serves
+   "Page not found".
 5. Before deploying, add an environment variable (there's a "New variable"
    option on that same screen, or under **Site configuration** →
    **Environment variables** after the site is created):
@@ -155,5 +163,10 @@ separately from the backend — Netlify's free tier is a good fit.
    step 6 above) — **change this password** once you're in, via a real admin
    account-management flow if/when one exists, or ask for a password change
    endpoint to be added.
+
+**If your existing site already shows "Page not found":** go to **Site
+configuration** → **Build & deploy** → **Build settings**, check the Publish
+directory — if it says `admin/dist`, change it to `dist` — then trigger
+**Deploys** → **Trigger deploy** → **Deploy site** (or push any commit).
 
 Every future `git push` to `main` that touches `admin/` will auto-redeploy.
