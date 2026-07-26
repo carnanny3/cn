@@ -69,7 +69,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   title: l10n.homeAddFirstVehicle,
                   message: l10n.homeUnlockHealthScore,
                   actionLabel: l10n.homeAddVehicle,
-                  onAction: () => context.push('/garage/add'),
+                  onAction: () => context.push('/garage/add').then((_) => setState(_reload)),
                 );
               }
 
