@@ -16,6 +16,7 @@ import { RewardsModule } from './rewards/rewards.module';
 import { SupportModule } from './support/support.module';
 import { WarrantyModule } from './warranty/warranty.module';
 import { InsuranceModule } from './insurance/insurance.module';
+import { RoadsideModule } from './roadside/roadside.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 
@@ -37,6 +38,7 @@ import { RolesGuard } from './common/guards/roles.guard';
     SupportModule,
     WarrantyModule,
     InsuranceModule,
+    RoadsideModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },

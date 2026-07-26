@@ -124,6 +124,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       _QuickAction(icon: Icons.fact_check_outlined, label: 'Inspect a Car', onTap: () => context.push('/inspection/book')),
                       _QuickAction(icon: Icons.garage_outlined, label: 'My Garage', onTap: () => context.go('/garage')),
                       _QuickAction(icon: Icons.smart_toy_outlined, label: 'Ask AI', onTap: () => context.go('/ai')),
+                      _QuickAction(icon: Icons.support_agent_outlined, label: 'Roadside Help', onTap: () => context.push('/roadside')),
                     ],
                   ),
                 ],

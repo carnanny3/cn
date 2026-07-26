@@ -1,10 +1,10 @@
 import { IsEmail, IsIn, IsOptional, IsPhoneNumber, IsString, MinLength } from 'class-validator';
 
-// Only garages and inspectors can self-register a login account at MVP — the
-// other partner types (insurer, warranty_provider, etc.) are Phase 2+ and
-// don't have a partner-facing app surface yet, only the admin-managed
-// `POST /partners/register` catalog entry.
-const SELF_SERVE_PARTNER_TYPES = ['garage', 'inspector'] as const;
+// Garages, inspectors, and roadside providers can self-register a login
+// account — each has a real Partner Portal job queue. Other partner types
+// (insurer, warranty_provider, etc.) are manual-workflow-only in this MVP,
+// onboarded via the admin-managed `POST /partners/register` catalog entry.
+const SELF_SERVE_PARTNER_TYPES = ['garage', 'inspector', 'roadside_provider'] as const;
 
 export class RegisterPartnerAccountDto {
   @IsEmail(undefined, { message: 'email must be a valid email address' })

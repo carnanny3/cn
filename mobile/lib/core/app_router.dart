@@ -18,6 +18,8 @@ import '../features/partner/partner_signup_screen.dart';
 import '../features/insurance/insurance_home_screen.dart';
 import '../features/profile/profile_screen.dart';
 import '../features/rewards/rewards_screen.dart';
+import '../features/roadside/roadside_request_screen.dart';
+import '../features/roadside/roadside_tracking_screen.dart';
 import '../features/services/garage_search_screen.dart';
 import '../features/services/services_home_screen.dart';
 import '../features/support/support_screen.dart';
@@ -72,6 +74,11 @@ GoRouter buildRouter(AuthState authState) {
       GoRoute(path: '/rewards', builder: (context, state) => const RewardsScreen()),
       GoRoute(path: '/warranty', builder: (context, state) => const WarrantyHomeScreen()),
       GoRoute(path: '/insurance', builder: (context, state) => const InsuranceHomeScreen()),
+      GoRoute(path: '/roadside', builder: (context, state) => const RoadsideRequestScreen()),
+      GoRoute(
+        path: '/roadside/:id',
+        builder: (context, state) => RoadsideTrackingScreen(requestId: state.pathParameters['id']!),
+      ),
       GoRoute(path: '/support', builder: (context, state) => const SupportScreen()),
       GoRoute(
         path: '/support/:id',

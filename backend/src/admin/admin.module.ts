@@ -2,11 +2,12 @@ import { Module } from '@nestjs/common';
 import { SupportModule } from '../support/support.module';
 import { WarrantyModule } from '../warranty/warranty.module';
 import { InsuranceModule } from '../insurance/insurance.module';
+import { RoadsideModule } from '../roadside/roadside.module';
 import { AdminService } from './admin.service';
 import { AdminController } from './admin.controller';
 
 @Module({
-  imports: [SupportModule, WarrantyModule, InsuranceModule],
+  imports: [SupportModule, WarrantyModule, InsuranceModule, RoadsideModule],
   controllers: [AdminController],
   providers: [AdminService],
 })

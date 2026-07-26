@@ -8,6 +8,7 @@ import { WarrantyService } from '../warranty/warranty.service';
 import { UpdateClaimStatusDto } from '../warranty/dto/update-claim-status.dto';
 import { InsuranceService } from '../insurance/insurance.service';
 import { RespondQuoteDto } from '../insurance/dto/respond-quote.dto';
+import { RoadsideService } from '../roadside/roadside.service';
 import { CurrentUser, JwtPayload } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 
@@ -33,6 +34,7 @@ export class AdminController {
     private readonly supportService: SupportService,
     private readonly warrantyService: WarrantyService,
     private readonly insuranceService: InsuranceService,
+    private readonly roadsideService: RoadsideService,
   ) {}
 
   @Get('summary')
@@ -83,6 +85,11 @@ export class AdminController {
   @Patch('insurance-quotes/:id/respond')
   respondToQuote(@Param('id') id: string, @Body() dto: RespondQuoteDto) {
     return this.insuranceService.respondToQuote(id, dto);
+  }
+
+  @Get('roadside-requests')
+  listRoadsideRequests(@Query('status') status?: string) {
+    return this.roadsideService.listAllRequests(status);
   }
 
   @Get('users')

@@ -207,6 +207,22 @@ async function main() {
     create: { id: 'seed-insurance-provider-1', name: 'Al Noor Insurance', integrationType: 'manual' },
   });
 
+  await prisma.partner.upsert({
+    where: { id: 'seed-partner-roadside' },
+    update: {},
+    create: {
+      id: 'seed-partner-roadside',
+      businessName: 'Rapid Response Roadside',
+      partnerType: 'roadside_provider',
+      status: 'verified',
+      contactPhone: '+971503333333',
+      ratingAvg: 4.7,
+      latitude: 25.2,
+      longitude: 55.27,
+      verifiedAt: new Date(),
+    },
+  });
+
   console.log('Seed complete.');
   console.log(`Sample customer: ${customer.email} / password: ${SEED_PASSWORD}`);
   console.log(`Sample admin: ${admin.email} / password: ${SEED_PASSWORD}`);
