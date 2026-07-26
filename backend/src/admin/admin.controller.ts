@@ -11,6 +11,8 @@ import { RespondQuoteDto } from '../insurance/dto/respond-quote.dto';
 import { RoadsideService } from '../roadside/roadside.service';
 import { ConciergeService } from '../concierge/concierge.service';
 import { UpdateConciergeOrderDto } from '../concierge/dto/update-order.dto';
+import { ListingsService } from '../listings/listings.service';
+import { UpdateListingStatusDto } from '../listings/dto/update-listing-status.dto';
 import { CurrentUser, JwtPayload } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 
@@ -38,6 +40,7 @@ export class AdminController {
     private readonly insuranceService: InsuranceService,
     private readonly roadsideService: RoadsideService,
     private readonly conciergeService: ConciergeService,
+    private readonly listingsService: ListingsService,
   ) {}
 
   @Get('summary')
@@ -128,5 +131,15 @@ export class AdminController {
   @Get('bookings')
   listBookings(@Query('status') status?: string) {
     return this.adminService.listBookings(status);
+  }
+
+  @Get('listings')
+  listListings(@Query('status') status?: string) {
+    return this.listingsService.listAll(status);
+  }
+
+  @Patch('listings/:id/status')
+  updateListingStatus(@Param('id') id: string, @Body() dto: UpdateListingStatusDto) {
+    return this.listingsService.updateStatus(id, dto.status);
   }
 }

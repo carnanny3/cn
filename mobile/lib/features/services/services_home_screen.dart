@@ -92,6 +92,20 @@ class ServicesHomeScreen extends StatelessWidget {
                   ],
                 ),
               ),
+              const SizedBox(height: 20),
+              Text('Buy / Sell', style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 12),
+              GlassCard(
+                onTap: () => context.push('/listings'),
+                child: Row(
+                  children: [
+                    const Icon(Icons.directions_car_outlined, color: AppColors.goldLight),
+                    const SizedBox(width: 12),
+                    Expanded(child: Text('Buy a Car — browse, compare, or list your own', style: Theme.of(context).textTheme.bodyLarge)),
+                    const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+                  ],
+                ),
+              ),
             ],
           ),
         ),

@@ -11,6 +11,7 @@ import 'features/concierge/concierge_repository.dart';
 import 'features/garage/garage_repository.dart';
 import 'features/insurance/insurance_repository.dart';
 import 'features/inspection/inspection_repository.dart';
+import 'features/listings/listing_repository.dart';
 import 'features/partner/partner_repository.dart';
 import 'features/profile/user_repository.dart';
 import 'features/rewards/rewards_repository.dart';
@@ -63,6 +64,7 @@ class _CarNannyAppState extends State<CarNannyApp> {
         Provider(create: (_) => InsuranceRepository(_apiClient)),
         Provider(create: (_) => RoadsideRepository(_apiClient)),
         Provider(create: (_) => ConciergeRepository(_apiClient)),
+        Provider(create: (_) => ListingRepository(_apiClient)),
       ],
       child: MaterialApp.router(
         title: 'Car Nanny',

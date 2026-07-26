@@ -17,6 +17,9 @@ import '../features/partner/partner_profile_screen.dart';
 import '../features/partner/partner_signup_screen.dart';
 import '../features/concierge/concierge_screen.dart';
 import '../features/insurance/insurance_home_screen.dart';
+import '../features/listings/listing_compare_screen.dart';
+import '../features/listings/listing_detail_screen.dart';
+import '../features/listings/marketplace_screen.dart';
 import '../features/profile/profile_screen.dart';
 import '../features/rewards/rewards_screen.dart';
 import '../features/roadside/roadside_request_screen.dart';
@@ -80,6 +83,15 @@ GoRouter buildRouter(AuthState authState) {
       GoRoute(
         path: '/roadside/:id',
         builder: (context, state) => RoadsideTrackingScreen(requestId: state.pathParameters['id']!),
+      ),
+      GoRoute(path: '/listings', builder: (context, state) => const MarketplaceScreen()),
+      GoRoute(
+        path: '/listings/compare',
+        builder: (context, state) => ListingCompareScreen(ids: (state.uri.queryParameters['ids'] ?? '').split(',').where((e) => e.isNotEmpty).toList()),
+      ),
+      GoRoute(
+        path: '/listings/:id',
+        builder: (context, state) => ListingDetailScreen(listingId: state.pathParameters['id']!),
       ),
       GoRoute(path: '/support', builder: (context, state) => const SupportScreen()),
       GoRoute(
