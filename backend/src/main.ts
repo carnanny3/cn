@@ -6,7 +6,9 @@ import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { cors: true });
+  // rawBody is needed on `req.rawBody` for Stripe webhook signature
+  // verification, which must run against the exact bytes Stripe sent.
+  const app = await NestFactory.create(AppModule, { cors: true, rawBody: true });
 
   app.setGlobalPrefix('api/v1');
   app.useGlobalPipes(

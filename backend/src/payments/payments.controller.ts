@@ -1,9 +1,11 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, Headers, HttpCode, HttpStatus, Param, Post, RawBodyRequest, Req } from '@nestjs/common';
+import { ApiBearerAuth, ApiExcludeEndpoint, ApiTags } from '@nestjs/swagger';
+import type { Request } from 'express';
 import { PaymentsService } from './payments.service';
 import { CreatePaymentIntentDto } from './dto/create-payment-intent.dto';
 import { CurrentUser, JwtPayload } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
+import { Public } from '../common/decorators/public.decorator';
 
 @ApiTags('payments')
 @ApiBearerAuth()
@@ -14,6 +16,16 @@ export class PaymentsController {
   @Post('intents')
   createIntent(@CurrentUser() user: JwtPayload, @Body() dto: CreatePaymentIntentDto) {
     return this.paymentsService.createIntent(user.sub, dto);
+  }
+
+  // Called by Stripe directly, not the app — no user JWT is present.
+  @Public()
+  @ApiExcludeEndpoint()
+  @Post('webhook')
+  @HttpCode(HttpStatus.OK)
+  async webhook(@Req() req: RawBodyRequest<Request>, @Headers('stripe-signature') signature: string) {
+    await this.paymentsService.handleStripeWebhook(req.rawBody!, signature);
+    return { received: true };
   }
 
   @Get(':id')
