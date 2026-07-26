@@ -1,6 +1,8 @@
-import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, Req } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import type { Request } from 'express';
 import { PartnersService } from './partners.service';
+import { AuditLogService } from '../audit-log/audit-log.service';
 import { RegisterPartnerDto } from './dto/register-partner.dto';
 import { RegisterPartnerAccountDto } from './dto/register-partner-account.dto';
 import { UpdatePartnerProfileDto } from './dto/update-partner-profile.dto';
@@ -14,7 +16,10 @@ import { CurrentUser, JwtPayload } from '../common/decorators/current-user.decor
 @ApiTags('partners')
 @Controller('partners')
 export class PartnersController {
-  constructor(private readonly partnersService: PartnersService) {}
+  constructor(
+    private readonly partnersService: PartnersService,
+    private readonly auditLog: AuditLogService,
+  ) {}
 
   // Admin-managed catalog entry (no login account) — used for partner types
   // that don't have a self-serve portal yet (insurer, warranty_provider, etc).
@@ -94,7 +99,21 @@ export class PartnersController {
   @ApiBearerAuth()
   @Roles('admin_partner_manager', 'admin_super')
   @Patch(':id/verify')
-  verify(@Param('id') id: string, @Body() body: { approve: boolean; rejectionReason?: string }) {
-    return this.partnersService.verify(id, body.approve, body.rejectionReason);
+  async verify(
+    @CurrentUser() user: JwtPayload,
+    @Param('id') id: string,
+    @Body() body: { approve: boolean; rejectionReason?: string },
+    @Req() req: Request,
+  ) {
+    const after = await this.partnersService.verify(id, body.approve, body.rejectionReason);
+    await this.auditLog.log({
+      adminUserId: user.sub,
+      action: body.approve ? 'partner.approve' : 'partner.reject',
+      entityType: 'Partner',
+      entityId: id,
+      afterState: after,
+      ipAddress: req.ip,
+    });
+    return after;
   }
 }

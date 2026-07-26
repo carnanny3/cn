@@ -3,6 +3,7 @@ import { apiClient, getStoredToken, messageFrom, setStoredToken } from '../api/c
 
 interface AuthContextValue {
   isAuthenticated: boolean;
+  role: string | null;
   error: string | null;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
@@ -10,8 +11,21 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+// No signature verification needed here — the server already verifies the
+// token on every request; this is purely to pick which nav items to show.
+function roleFromToken(token: string | null): string | null {
+  if (!token) return null;
+  try {
+    const payload = token.split('.')[1];
+    const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+    return decoded.role ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => Boolean(getStoredToken()));
+  const [token, setToken] = useState(() => getStoredToken());
   const [error, setError] = useState<string | null>(null);
 
   const login = async (email: string, password: string) => {
@@ -19,7 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const response = await apiClient.post('/auth/login', { email, password });
       setStoredToken(response.data.accessToken);
-      setIsAuthenticated(true);
+      setToken(response.data.accessToken);
       return true;
     } catch (e) {
       setError(messageFrom(e));
@@ -29,10 +43,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = () => {
     setStoredToken(null);
-    setIsAuthenticated(false);
+    setToken(null);
   };
 
-  const value = useMemo(() => ({ isAuthenticated, error, login, logout }), [isAuthenticated, error]);
+  const value = useMemo(
+    () => ({ isAuthenticated: Boolean(token), role: roleFromToken(token), error, login, logout }),
+    [token, error],
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

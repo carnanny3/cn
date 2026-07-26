@@ -5,11 +5,22 @@ import { InsuranceModule } from '../insurance/insurance.module';
 import { RoadsideModule } from '../roadside/roadside.module';
 import { ConciergeModule } from '../concierge/concierge.module';
 import { ListingsModule } from '../listings/listings.module';
+import { PaymentsModule } from '../payments/payments.module';
+import { AuditLogModule } from '../audit-log/audit-log.module';
 import { AdminService } from './admin.service';
 import { AdminController } from './admin.controller';
 
 @Module({
-  imports: [SupportModule, WarrantyModule, InsuranceModule, RoadsideModule, ConciergeModule, ListingsModule],
+  imports: [
+    SupportModule,
+    WarrantyModule,
+    InsuranceModule,
+    RoadsideModule,
+    ConciergeModule,
+    ListingsModule,
+    PaymentsModule,
+    AuditLogModule,
+  ],
   controllers: [AdminController],
   providers: [AdminService],
 })

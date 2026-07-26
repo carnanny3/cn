@@ -85,6 +85,29 @@ export class PaymentsService {
     return this.prisma.payment.update({ where: { id }, data: { status: 'refunded' } });
   }
 
+  listAll(status?: string) {
+    return this.prisma.payment.findMany({
+      where: status ? { status: status as never } : undefined,
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async revenueSummary() {
+    const [captured, refunded, pending, failed] = await Promise.all([
+      this.prisma.payment.aggregate({ where: { status: 'captured' }, _sum: { amount: true, vatAmount: true }, _count: true }),
+      this.prisma.payment.aggregate({ where: { status: 'refunded' }, _sum: { amount: true }, _count: true }),
+      this.prisma.payment.aggregate({ where: { status: 'pending' }, _sum: { amount: true }, _count: true }),
+      this.prisma.payment.aggregate({ where: { status: 'failed' }, _sum: { amount: true }, _count: true }),
+    ]);
+    return {
+      captured: { total: captured._sum.amount ?? 0, vat: captured._sum.vatAmount ?? 0, count: captured._count },
+      refunded: { total: refunded._sum.amount ?? 0, count: refunded._count },
+      pending: { total: pending._sum.amount ?? 0, count: pending._count },
+      failed: { total: failed._sum.amount ?? 0, count: failed._count },
+      netRevenue: (captured._sum.amount ?? 0) - (refunded._sum.amount ?? 0),
+    };
+  }
+
   /** Verifies and applies a Stripe webhook event. Returns quietly (no-op) if Stripe isn't configured — lets the caller always respond 200 either way. */
   async handleStripeWebhook(rawBody: Buffer, signature: string | undefined) {
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;

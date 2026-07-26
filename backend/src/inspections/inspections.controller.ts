@@ -1,9 +1,11 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Req } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import type { Request } from 'express';
 import { InspectionsService } from './inspections.service';
 import { BookInspectionDto } from './dto/book-inspection.dto';
 import { SubmitCheckpointsDto } from './dto/submit-checkpoints.dto';
 import { UpdateInspectionStatusDto } from './dto/update-inspection-status.dto';
+import { AuditLogService } from '../audit-log/audit-log.service';
 import { CurrentUser, JwtPayload } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 
@@ -11,7 +13,10 @@ import { Roles } from '../common/decorators/roles.decorator';
 @ApiBearerAuth()
 @Controller('inspections')
 export class InspectionsController {
-  constructor(private readonly inspectionsService: InspectionsService) {}
+  constructor(
+    private readonly inspectionsService: InspectionsService,
+    private readonly auditLog: AuditLogService,
+  ) {}
 
   @Post()
   book(@CurrentUser() user: JwtPayload, @Body() dto: BookInspectionDto) {
@@ -56,7 +61,16 @@ export class InspectionsController {
 
   @Roles('admin_inspection', 'admin_super')
   @Patch(':id/approve-report')
-  approveReport(@Param('id') id: string) {
-    return this.inspectionsService.approveReport(id);
+  async approveReport(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Req() req: Request) {
+    const after = await this.inspectionsService.approveReport(id);
+    await this.auditLog.log({
+      adminUserId: user.sub,
+      action: 'inspection_report.approve',
+      entityType: 'Inspection',
+      entityId: id,
+      afterState: after,
+      ipAddress: req.ip,
+    });
+    return after;
   }
 }

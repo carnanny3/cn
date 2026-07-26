@@ -946,3 +946,38 @@ model VehicleListing {
   @@index([status])
   @@map("vehicle_listings")
 }
+
+enum CouponDiscountType {
+  percentage
+  fixed_amount
+}
+
+model CmsContent {
+  id        String   @id @default(uuid())
+  section   String
+  locale    String   @default("en")
+  title     String
+  body      String
+  order     Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([section, locale])
+  @@map("cms_content")
+}
+
+model Coupon {
+  id             String             @id @default(uuid())
+  code           String             @unique
+  description    String?
+  discountType   CouponDiscountType @map("discount_type")
+  discountValue  Float              @map("discount_value")
+  maxRedemptions Int?               @map("max_redemptions")
+  redeemedCount  Int                @default(0) @map("redeemed_count")
+  expiresAt      DateTime?          @map("expires_at")
+  active         Boolean            @default(true)
+  createdAt      DateTime           @default(now()) @map("created_at")
+  updatedAt      DateTime           @updatedAt @map("updated_at")
+
+  @@map("coupons")
+}

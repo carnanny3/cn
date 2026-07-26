@@ -57,6 +57,18 @@ a {
   background: var(--glass-fill);
   backdrop-filter: blur(20px);
   border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  overflow-y: auto;
+}
+
+.sidebar nav {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .sidebar-brand {
@@ -186,6 +198,35 @@ input::placeholder {
 input:focus {
   outline: none;
   border-color: var(--gold-mid);
+}
+
+select, textarea {
+  font: inherit;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--navy-mid);
+  color: var(--text-primary);
+}
+
+select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--gold-mid);
+}
+
+.field-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.form-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+  max-width: 480px;
 }
 
 .login-screen {

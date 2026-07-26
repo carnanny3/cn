@@ -19,6 +19,8 @@ import { InsuranceModule } from './insurance/insurance.module';
 import { RoadsideModule } from './roadside/roadside.module';
 import { ConciergeModule } from './concierge/concierge.module';
 import { ListingsModule } from './listings/listings.module';
+import { CmsModule } from './cms/cms.module';
+import { PromotionsModule } from './promotions/promotions.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 
@@ -43,6 +45,8 @@ import { RolesGuard } from './common/guards/roles.guard';
     RoadsideModule,
     ConciergeModule,
     ListingsModule,
+    CmsModule,
+    PromotionsModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },

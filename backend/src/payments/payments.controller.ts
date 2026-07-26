@@ -3,6 +3,7 @@ import { ApiBearerAuth, ApiExcludeEndpoint, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { PaymentsService } from './payments.service';
 import { CreatePaymentIntentDto } from './dto/create-payment-intent.dto';
+import { AuditLogService } from '../audit-log/audit-log.service';
 import { CurrentUser, JwtPayload } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import { Public } from '../common/decorators/public.decorator';
@@ -11,7 +12,10 @@ import { Public } from '../common/decorators/public.decorator';
 @ApiBearerAuth()
 @Controller('payments')
 export class PaymentsController {
-  constructor(private readonly paymentsService: PaymentsService) {}
+  constructor(
+    private readonly paymentsService: PaymentsService,
+    private readonly auditLog: AuditLogService,
+  ) {}
 
   @Post('intents')
   createIntent(@CurrentUser() user: JwtPayload, @Body() dto: CreatePaymentIntentDto) {
@@ -40,7 +44,18 @@ export class PaymentsController {
 
   @Roles('admin_finance', 'admin_super')
   @Post(':id/refund')
-  refund(@Param('id') id: string) {
-    return this.paymentsService.refund(id);
+  async refund(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Req() req: Request) {
+    const before = await this.paymentsService.findOne(id);
+    const after = await this.paymentsService.refund(id);
+    await this.auditLog.log({
+      adminUserId: user.sub,
+      action: 'payment.refund',
+      entityType: 'Payment',
+      entityId: id,
+      beforeState: before,
+      afterState: after,
+      ipAddress: req.ip,
+    });
+    return after;
   }
 }
