@@ -1,6 +1,7 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { PartnersService } from '../partners/partners.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 
 @Injectable()
@@ -8,6 +9,7 @@ export class BookingsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly partnersService: PartnersService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async create(customerId: string, dto: CreateBookingDto) {
@@ -37,6 +39,15 @@ export class BookingsService {
 
     await this.prisma.bookingStatusHistory.create({
       data: { bookingId: booking.id, status: 'pending', changedBy: customerId },
+    });
+
+    await this.notificationsService.notify({
+      userId: customerId,
+      category: 'booking_status',
+      title: 'Booking received',
+      body: `Your ${dto.bookingType} booking has been received and is awaiting confirmation.`,
+      relatedEntityType: 'booking',
+      relatedEntityId: booking.id,
     });
 
     return {
@@ -93,6 +104,16 @@ export class BookingsService {
     await this.prisma.bookingStatusHistory.create({
       data: { bookingId: id, status: status as never, changedBy },
     });
+
+    await this.notificationsService.notify({
+      userId: booking.customerId,
+      category: 'booking_status',
+      title: 'Booking update',
+      body: `Your booking is now ${status.replace('_', ' ')}.`,
+      relatedEntityType: 'booking',
+      relatedEntityId: booking.id,
+    });
+
     return booking;
   }
 

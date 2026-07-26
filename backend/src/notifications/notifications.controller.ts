@@ -1,7 +1,8 @@
-import { Body, Controller, Get, Patch, Param } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Param, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { NotificationsService } from './notifications.service';
 import { SetPreferenceDto } from './dto/set-preference.dto';
+import { RegisterDeviceTokenDto } from './dto/register-device-token.dto';
 import { CurrentUser, JwtPayload } from '../common/decorators/current-user.decorator';
 
 @ApiTags('notifications')
@@ -13,6 +14,16 @@ export class NotificationsController {
   @Get('notifications')
   list(@CurrentUser() user: JwtPayload) {
     return this.notificationsService.listForUser(user.sub);
+  }
+
+  @Post('notifications/device-tokens')
+  registerDeviceToken(@CurrentUser() user: JwtPayload, @Body() dto: RegisterDeviceTokenDto) {
+    return this.notificationsService.registerDeviceToken(user.sub, dto.token, dto.platform);
+  }
+
+  @Post('notifications/device-tokens/remove')
+  unregisterDeviceToken(@Body() body: { token: string }) {
+    return this.notificationsService.unregisterDeviceToken(body.token);
   }
 
   @Patch('notifications/:id/read')

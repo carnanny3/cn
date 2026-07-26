@@ -1,6 +1,7 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { PartnersService } from '../partners/partners.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { BookInspectionDto } from './dto/book-inspection.dto';
 import { SubmitCheckpointsDto } from './dto/submit-checkpoints.dto';
 import { generateInspectionReport, AI_DISCLAIMER } from './report-generator.util';
@@ -13,6 +14,7 @@ export class InspectionsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly partnersService: PartnersService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async book(requesterId: string, dto: BookInspectionDto) {
@@ -36,6 +38,15 @@ export class InspectionsService {
         locationAddress: dto.location.address,
         priceAmount: INSPECTION_PRICE_AED,
       },
+    });
+
+    await this.notificationsService.notify({
+      userId: requesterId,
+      category: 'inspection_status',
+      title: 'Inspection booked',
+      body: `Your inspection is booked for ${new Date(dto.scheduledAt).toLocaleDateString()}. We'll confirm an inspector shortly.`,
+      relatedEntityType: 'inspection',
+      relatedEntityId: inspection.id,
     });
 
     return {
@@ -164,10 +175,20 @@ export class InspectionsService {
   }
 
   async approveReport(inspectionId: string) {
-    await this.prisma.inspection.update({
+    const inspection = await this.prisma.inspection.update({
       where: { id: inspectionId },
       data: { status: 'completed' },
     });
+
+    await this.notificationsService.notify({
+      userId: inspection.requesterId,
+      category: 'inspection_status',
+      title: 'Inspection report ready',
+      body: 'Your vehicle inspection report is ready to view.',
+      relatedEntityType: 'inspection',
+      relatedEntityId: inspectionId,
+    });
+
     return this.getReport(inspectionId);
   }
 

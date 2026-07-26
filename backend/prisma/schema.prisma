@@ -318,8 +318,22 @@ model User {
   roadsideRequests   RoadsideRequest[]
   conciergeOrders    ConciergeOrder[]
   vehicleListings    VehicleListing[]
+  deviceTokens       DeviceToken[]
 
   @@map("users")
+}
+
+model DeviceToken {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  token     String   @unique
+  platform  String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@map("device_tokens")
 }
 
 model RefreshToken {
