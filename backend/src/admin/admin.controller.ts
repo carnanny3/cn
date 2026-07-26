@@ -9,6 +9,8 @@ import { UpdateClaimStatusDto } from '../warranty/dto/update-claim-status.dto';
 import { InsuranceService } from '../insurance/insurance.service';
 import { RespondQuoteDto } from '../insurance/dto/respond-quote.dto';
 import { RoadsideService } from '../roadside/roadside.service';
+import { ConciergeService } from '../concierge/concierge.service';
+import { UpdateConciergeOrderDto } from '../concierge/dto/update-order.dto';
 import { CurrentUser, JwtPayload } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 
@@ -35,6 +37,7 @@ export class AdminController {
     private readonly warrantyService: WarrantyService,
     private readonly insuranceService: InsuranceService,
     private readonly roadsideService: RoadsideService,
+    private readonly conciergeService: ConciergeService,
   ) {}
 
   @Get('summary')
@@ -90,6 +93,16 @@ export class AdminController {
   @Get('roadside-requests')
   listRoadsideRequests(@Query('status') status?: string) {
     return this.roadsideService.listAllRequests(status);
+  }
+
+  @Get('concierge-orders')
+  listConciergeOrders(@Query('status') status?: string) {
+    return this.conciergeService.listAllOrders(status);
+  }
+
+  @Patch('concierge-orders/:id')
+  updateConciergeOrder(@Param('id') id: string, @Body() dto: UpdateConciergeOrderDto) {
+    return this.conciergeService.updateOrder(id, dto);
   }
 
   @Get('users')

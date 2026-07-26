@@ -78,6 +78,20 @@ class ServicesHomeScreen extends StatelessWidget {
                   ],
                 ),
               ),
+              const SizedBox(height: 20),
+              Text('Concierge', style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 12),
+              GlassCard(
+                onTap: () => context.push('/concierge'),
+                child: Row(
+                  children: [
+                    const Icon(Icons.support_agent_outlined, color: AppColors.goldLight),
+                    const SizedBox(width: 12),
+                    Expanded(child: Text('Registration, transfers, pickup & delivery, detailing', style: Theme.of(context).textTheme.bodyLarge)),
+                    const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+                  ],
+                ),
+              ),
             ],
           ),
         ),

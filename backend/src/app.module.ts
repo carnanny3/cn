@@ -17,6 +17,7 @@ import { SupportModule } from './support/support.module';
 import { WarrantyModule } from './warranty/warranty.module';
 import { InsuranceModule } from './insurance/insurance.module';
 import { RoadsideModule } from './roadside/roadside.module';
+import { ConciergeModule } from './concierge/concierge.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 
@@ -39,6 +40,7 @@ import { RolesGuard } from './common/guards/roles.guard';
     WarrantyModule,
     InsuranceModule,
     RoadsideModule,
+    ConciergeModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },

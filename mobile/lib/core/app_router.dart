@@ -15,6 +15,7 @@ import '../features/partner/partner_inspection_checklist_screen.dart';
 import '../features/partner/partner_jobs_screen.dart';
 import '../features/partner/partner_profile_screen.dart';
 import '../features/partner/partner_signup_screen.dart';
+import '../features/concierge/concierge_screen.dart';
 import '../features/insurance/insurance_home_screen.dart';
 import '../features/profile/profile_screen.dart';
 import '../features/rewards/rewards_screen.dart';
@@ -74,6 +75,7 @@ GoRouter buildRouter(AuthState authState) {
       GoRoute(path: '/rewards', builder: (context, state) => const RewardsScreen()),
       GoRoute(path: '/warranty', builder: (context, state) => const WarrantyHomeScreen()),
       GoRoute(path: '/insurance', builder: (context, state) => const InsuranceHomeScreen()),
+      GoRoute(path: '/concierge', builder: (context, state) => const ConciergeScreen()),
       GoRoute(path: '/roadside', builder: (context, state) => const RoadsideRequestScreen()),
       GoRoute(
         path: '/roadside/:id',
