@@ -9,6 +9,7 @@ import 'core/theme/app_theme.dart';
 import 'features/ai/ai_repository.dart';
 import 'features/garage/garage_repository.dart';
 import 'features/inspection/inspection_repository.dart';
+import 'features/partner/partner_repository.dart';
 import 'features/profile/user_repository.dart';
 import 'features/services/services_repository.dart';
 
@@ -49,6 +50,7 @@ class _CarNannyAppState extends State<CarNannyApp> {
         Provider(create: (_) => ServicesRepository(_apiClient)),
         Provider(create: (_) => AiRepository(_apiClient)),
         Provider(create: (_) => UserRepository(_apiClient)),
+        Provider(create: (_) => PartnerRepository(_apiClient)),
       ],
       child: MaterialApp.router(
         title: 'Car Nanny',

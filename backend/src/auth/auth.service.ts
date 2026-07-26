@@ -177,6 +177,10 @@ export class AuthService {
     return { success: true };
   }
 
+  async issueTokensForUser(userId: string, role: string, email: string) {
+    return this.issueTokens(userId, role, email);
+  }
+
   private async issueTokens(userId: string, role: string, email: string) {
     const payload = { sub: userId, role, email };
     const accessToken = this.jwtService.sign(payload, {

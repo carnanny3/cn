@@ -178,6 +178,13 @@ class _AuthScreenState extends State<AuthScreen> {
                     ],
                   ),
                 ),
+                const SizedBox(height: 20),
+                Center(
+                  child: TextButton(
+                    onPressed: () => context.push('/partner-signup'),
+                    child: const Text('Own a garage or inspection business? Become a partner'),
+                  ),
+                ),
               ],
             ),
           ),

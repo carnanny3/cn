@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -18,6 +19,9 @@ class AuthState extends ChangeNotifier {
   String? lastError;
   String? devResetCodeHint;
   String? _pendingResetEmail;
+  String? role;
+
+  bool get isPartner => role == 'partner';
 
   static const _accessTokenKey = 'car_nanny_access_token';
   static const _refreshTokenKey = 'car_nanny_refresh_token';
@@ -28,11 +32,26 @@ class AuthState extends ChangeNotifier {
     final accessToken = prefs.getString(_accessTokenKey);
     if (accessToken != null && refreshToken != null) {
       apiClient.accessToken = accessToken;
+      role = _roleFromToken(accessToken);
       status = AuthStatus.signedIn;
     } else {
       status = AuthStatus.signedOut;
     }
     notifyListeners();
+  }
+
+  /// Reads the `role` claim out of the access token's payload. No signature
+  /// verification needed here — the server already verifies it on every
+  /// request; this is purely to pick which UI (customer vs partner) to show.
+  String? _roleFromToken(String jwt) {
+    try {
+      final parts = jwt.split('.');
+      if (parts.length != 3) return null;
+      final payload = utf8.decode(base64Url.decode(base64Url.normalize(parts[1])));
+      return (jsonDecode(payload) as Map<String, dynamic>)['role'] as String?;
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<bool> register(String email, String password, String fullName, {String? phoneNumber}) async {
@@ -61,6 +80,35 @@ class AuthState extends ChangeNotifier {
       final response = await apiClient.dio.post('/auth/login', data: {
         'email': email,
         'password': password,
+      });
+      await _persistTokens(response.data as Map<String, dynamic>);
+      status = AuthStatus.signedIn;
+      notifyListeners();
+      return true;
+    } on DioException catch (e) {
+      lastError = ApiClient.messageFrom(e);
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> registerPartner({
+    required String email,
+    required String password,
+    required String fullName,
+    required String businessName,
+    required String partnerType,
+    String? contactPhone,
+  }) async {
+    lastError = null;
+    try {
+      final response = await apiClient.dio.post('/partners/register-account', data: {
+        'email': email,
+        'password': password,
+        'fullName': fullName,
+        'businessName': businessName,
+        'partnerType': partnerType,
+        if (contactPhone != null && contactPhone.isNotEmpty) 'contactPhone': contactPhone,
       });
       await _persistTokens(response.data as Map<String, dynamic>);
       status = AuthStatus.signedIn;
@@ -109,6 +157,7 @@ class AuthState extends ChangeNotifier {
     final accessToken = tokenResponse['accessToken'] as String;
     final refreshToken = tokenResponse['refreshToken'] as String;
     apiClient.accessToken = accessToken;
+    role = _roleFromToken(accessToken);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_accessTokenKey, accessToken);
     await prefs.setString(_refreshTokenKey, refreshToken);
@@ -119,6 +168,7 @@ class AuthState extends ChangeNotifier {
     await prefs.remove(_accessTokenKey);
     await prefs.remove(_refreshTokenKey);
     apiClient.accessToken = null;
+    role = null;
     status = AuthStatus.signedOut;
     notifyListeners();
   }

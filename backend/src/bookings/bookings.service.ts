@@ -1,10 +1,14 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { PartnersService } from '../partners/partners.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 
 @Injectable()
 export class BookingsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly partnersService: PartnersService,
+  ) {}
 
   async create(customerId: string, dto: CreateBookingDto) {
     const owner = await this.prisma.vehicleOwner.findUnique({
@@ -49,6 +53,15 @@ export class BookingsService {
     });
   }
 
+  async findAllForPartner(userId: string) {
+    const partnerId = await this.partnersService.resolvePartnerId(userId);
+    return this.prisma.booking.findMany({
+      where: { partnerId },
+      orderBy: { scheduledAt: 'desc' },
+      include: { customer: { select: { fullName: true, phoneNumber: true } }, vehicle: true, statusHistory: true },
+    });
+  }
+
   async findOne(customerId: string, id: string) {
     const booking = await this.prisma.booking.findUnique({
       where: { id },
@@ -61,7 +74,18 @@ export class BookingsService {
     return booking;
   }
 
-  async updateStatus(id: string, status: string, changedBy: string) {
+  async updateStatus(id: string, status: string, changedBy: string, callerRole: string) {
+    if (callerRole === 'partner') {
+      const partnerId = await this.partnersService.resolvePartnerId(changedBy);
+      const booking = await this.prisma.booking.findUnique({ where: { id } });
+      if (!booking || booking.partnerId !== partnerId) {
+        throw new ForbiddenException({
+          code: 'NOT_YOUR_BOOKING',
+          message: 'This booking is not assigned to your business.',
+        });
+      }
+    }
+
     const booking = await this.prisma.booking.update({
       where: { id },
       data: { status: status as never },
@@ -74,6 +98,6 @@ export class BookingsService {
 
   async cancel(customerId: string, id: string) {
     await this.findOne(customerId, id);
-    return this.updateStatus(id, 'cancelled', customerId);
+    return this.updateStatus(id, 'cancelled', customerId, 'customer');
   }
 }

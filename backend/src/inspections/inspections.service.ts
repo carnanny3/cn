@@ -1,5 +1,6 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { PartnersService } from '../partners/partners.service';
 import { BookInspectionDto } from './dto/book-inspection.dto';
 import { SubmitCheckpointsDto } from './dto/submit-checkpoints.dto';
 import { generateInspectionReport, AI_DISCLAIMER } from './report-generator.util';
@@ -9,7 +10,10 @@ const VAT_RATE = 0.05;
 
 @Injectable()
 export class InspectionsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly partnersService: PartnersService,
+  ) {}
 
   async book(requesterId: string, dto: BookInspectionDto) {
     if (!dto.vehicleId && !dto.plateNumber) {
@@ -66,14 +70,38 @@ export class InspectionsService {
     });
   }
 
-  async updateStatus(inspectionId: string, status: string) {
+  async updateStatus(inspectionId: string, status: string, callerId: string, callerRole: string) {
+    await this.assertInspectorAccess(inspectionId, callerId, callerRole);
     return this.prisma.inspection.update({
       where: { id: inspectionId },
       data: { status: status as never },
     });
   }
 
-  async submitCheckpoints(inspectionId: string, dto: SubmitCheckpointsDto) {
+  async findAllForPartner(userId: string) {
+    const partnerId = await this.partnersService.resolvePartnerId(userId);
+    return this.prisma.inspection.findMany({
+      where: { inspectorId: partnerId },
+      orderBy: { scheduledAt: 'desc' },
+      include: { vehicle: true, requester: { select: { fullName: true, phoneNumber: true } } },
+    });
+  }
+
+  /** Enforces that a `partner`-role caller may only act on jobs assigned to their own business; other roles (admin) are unrestricted here. */
+  private async assertInspectorAccess(inspectionId: string, callerId: string, callerRole: string) {
+    if (callerRole !== 'partner') return;
+    const partnerId = await this.partnersService.resolvePartnerId(callerId);
+    const inspection = await this.prisma.inspection.findUnique({ where: { id: inspectionId } });
+    if (!inspection || inspection.inspectorId !== partnerId) {
+      throw new ForbiddenException({
+        code: 'NOT_YOUR_INSPECTION',
+        message: 'This inspection is not assigned to your business.',
+      });
+    }
+  }
+
+  async submitCheckpoints(inspectionId: string, dto: SubmitCheckpointsDto, callerId: string, callerRole: string) {
+    await this.assertInspectorAccess(inspectionId, callerId, callerRole);
     const inspection = await this.prisma.inspection.findUnique({
       where: { id: inspectionId },
       include: { vehicle: true },
@@ -154,13 +182,20 @@ export class InspectionsService {
     return { ...report, disclaimer: AI_DISCLAIMER };
   }
 
+  /** Allows either the customer who requested the inspection or the assigned inspector's own partner account to view it. */
   async assertRequester(userId: string, inspectionId: string) {
     const inspection = await this.prisma.inspection.findUnique({ where: { id: inspectionId } });
-    if (!inspection || inspection.requesterId !== userId) {
-      throw new ForbiddenException({
-        code: 'NOT_INSPECTION_REQUESTER',
-        message: 'You do not have access to this inspection.',
-      });
+    if (!inspection) {
+      throw new NotFoundException({ code: 'INSPECTION_NOT_FOUND', message: 'Inspection not found.' });
     }
+    if (inspection.requesterId === userId) return;
+    if (inspection.inspectorId) {
+      const partner = await this.prisma.partner.findUnique({ where: { userId } });
+      if (partner && partner.id === inspection.inspectorId) return;
+    }
+    throw new ForbiddenException({
+      code: 'NOT_INSPECTION_PARTICIPANT',
+      message: 'You do not have access to this inspection.',
+    });
   }
 }

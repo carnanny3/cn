@@ -18,6 +18,12 @@ export class InspectionsController {
     return this.inspectionsService.book(user.sub, dto);
   }
 
+  @Roles('partner')
+  @Get('assigned/mine')
+  findAllForPartner(@CurrentUser() user: JwtPayload) {
+    return this.inspectionsService.findAllForPartner(user.sub);
+  }
+
   @Get(':id')
   async findOne(@CurrentUser() user: JwtPayload, @Param('id') id: string) {
     await this.inspectionsService.assertRequester(user.sub, id);
@@ -38,14 +44,14 @@ export class InspectionsController {
 
   @Roles('partner', 'admin_inspection', 'admin_super')
   @Patch(':id/status')
-  updateStatus(@Param('id') id: string, @Body() dto: UpdateInspectionStatusDto) {
-    return this.inspectionsService.updateStatus(id, dto.status);
+  updateStatus(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Body() dto: UpdateInspectionStatusDto) {
+    return this.inspectionsService.updateStatus(id, dto.status, user.sub, user.role);
   }
 
   @Roles('partner', 'admin_inspection', 'admin_super')
   @Post(':id/checkpoints')
-  submitCheckpoints(@Param('id') id: string, @Body() dto: SubmitCheckpointsDto) {
-    return this.inspectionsService.submitCheckpoints(id, dto);
+  submitCheckpoints(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Body() dto: SubmitCheckpointsDto) {
+    return this.inspectionsService.submitCheckpoints(id, dto, user.sub, user.role);
   }
 
   @Roles('admin_inspection', 'admin_super')

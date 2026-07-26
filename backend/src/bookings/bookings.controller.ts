@@ -22,6 +22,12 @@ export class BookingsController {
     return this.bookingsService.findAllForUser(user.sub);
   }
 
+  @Roles('partner')
+  @Get('partner/mine')
+  findAllForPartner(@CurrentUser() user: JwtPayload) {
+    return this.bookingsService.findAllForPartner(user.sub);
+  }
+
   @Get(':id')
   findOne(@CurrentUser() user: JwtPayload, @Param('id') id: string) {
     return this.bookingsService.findOne(user.sub, id);
@@ -35,6 +41,6 @@ export class BookingsController {
   @Roles('partner', 'admin_ops', 'admin_super')
   @Patch(':id/status')
   updateStatus(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Body() dto: UpdateBookingStatusDto) {
-    return this.bookingsService.updateStatus(id, dto.status, user.sub);
+    return this.bookingsService.updateStatus(id, dto.status, user.sub, user.role);
   }
 }
