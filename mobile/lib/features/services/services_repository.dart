@@ -1,4 +1,5 @@
 import '../../core/api/api_client.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../bookings/booking_model.dart';
 import 'partner_model.dart';
 
@@ -7,15 +8,37 @@ class ServicesRepository {
 
   final ApiClient apiClient;
 
-  static const categories = <String, String>{
-    'oil_change': 'Oil Change',
-    'general_service': 'General Service',
-    'brakes': 'Brake Service',
-    'battery': 'Battery Replacement',
-    'ac_repair': 'AC Repair',
-    'tires': 'Tire Replacement',
-    'detailing': 'Detailing',
-  };
+  /// Service category IDs — stable, used as API values and lookup keys.
+  static const categoryKeys = <String>[
+    'oil_change',
+    'general_service',
+    'brakes',
+    'battery',
+    'ac_repair',
+    'tires',
+    'detailing',
+  ];
+
+  static String categoryLabel(AppLocalizations l10n, String key) {
+    switch (key) {
+      case 'oil_change':
+        return l10n.serviceOilChange;
+      case 'general_service':
+        return l10n.serviceGeneralService;
+      case 'brakes':
+        return l10n.serviceBrakes;
+      case 'battery':
+        return l10n.serviceBattery;
+      case 'ac_repair':
+        return l10n.serviceAcRepair;
+      case 'tires':
+        return l10n.serviceTires;
+      case 'detailing':
+        return l10n.serviceDetailing;
+      default:
+        return key;
+    }
+  }
 
   Future<List<PartnerResult>> searchGarages(String serviceCategory, {double? lat, double? lng}) async {
     final response = await apiClient.dio.get('/partners/search', queryParameters: {

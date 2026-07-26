@@ -6,6 +6,7 @@
 build/
 *.iml
 *.g.dart
+lib/l10n/generated/
 
 # IDE
 .idea/

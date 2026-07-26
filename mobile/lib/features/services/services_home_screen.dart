@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/glass_card.dart';
 import '../../core/widgets/gradient_background.dart';
+import '../../l10n/generated/app_localizations.dart';
 import 'services_repository.dart';
 
 const _categoryIcons = <String, IconData>{
@@ -20,9 +21,11 @@ class ServicesHomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final chevron = Directionality.of(context) == TextDirection.rtl ? Icons.chevron_left : Icons.chevron_right;
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: AppBar(backgroundColor: Colors.transparent, title: const Text('Services')),
+      appBar: AppBar(backgroundColor: Colors.transparent, title: Text(l10n.navServices)),
       body: GradientBackground(
         child: SafeArea(
           child: ListView(
@@ -35,17 +38,17 @@ class ServicesHomeScreen extends StatelessWidget {
                 mainAxisSpacing: 12,
                 crossAxisSpacing: 12,
                 childAspectRatio: 1.3,
-                children: ServicesRepository.categories.entries
+                children: ServicesRepository.categoryKeys
                     .map(
-                      (entry) => GlassCard(
-                        onTap: () => context.push('/services/${entry.key}'),
+                      (key) => GlassCard(
+                        onTap: () => context.push('/services/$key'),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
-                            Icon(_categoryIcons[entry.key] ?? Icons.build_outlined, size: 28, color: AppColors.goldLight),
+                            Icon(_categoryIcons[key] ?? Icons.build_outlined, size: 28, color: AppColors.goldLight),
                             const SizedBox(height: 10),
-                            Text(entry.value, style: Theme.of(context).textTheme.bodyLarge),
+                            Text(ServicesRepository.categoryLabel(l10n, key), style: Theme.of(context).textTheme.bodyLarge),
                           ],
                         ),
                       ),
@@ -53,7 +56,7 @@ class ServicesHomeScreen extends StatelessWidget {
                     .toList(),
               ),
               const SizedBox(height: 20),
-              Text('Protect Your Vehicle', style: Theme.of(context).textTheme.titleLarge),
+              Text(l10n.servicesProtectVehicle, style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 12),
               GlassCard(
                 onTap: () => context.push('/warranty'),
@@ -61,8 +64,8 @@ class ServicesHomeScreen extends StatelessWidget {
                   children: [
                     const Icon(Icons.shield_outlined, color: AppColors.goldLight),
                     const SizedBox(width: 12),
-                    Expanded(child: Text('Warranty Plans', style: Theme.of(context).textTheme.bodyLarge)),
-                    const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+                    Expanded(child: Text(l10n.servicesWarrantyPlans, style: Theme.of(context).textTheme.bodyLarge)),
+                    Icon(chevron, color: AppColors.textSecondary),
                   ],
                 ),
               ),
@@ -73,13 +76,13 @@ class ServicesHomeScreen extends StatelessWidget {
                   children: [
                     const Icon(Icons.security_outlined, color: AppColors.goldLight),
                     const SizedBox(width: 12),
-                    Expanded(child: Text('Insurance', style: Theme.of(context).textTheme.bodyLarge)),
-                    const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+                    Expanded(child: Text(l10n.servicesInsurance, style: Theme.of(context).textTheme.bodyLarge)),
+                    Icon(chevron, color: AppColors.textSecondary),
                   ],
                 ),
               ),
               const SizedBox(height: 20),
-              Text('Concierge', style: Theme.of(context).textTheme.titleLarge),
+              Text(l10n.servicesConcierge, style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 12),
               GlassCard(
                 onTap: () => context.push('/concierge'),
@@ -87,13 +90,13 @@ class ServicesHomeScreen extends StatelessWidget {
                   children: [
                     const Icon(Icons.support_agent_outlined, color: AppColors.goldLight),
                     const SizedBox(width: 12),
-                    Expanded(child: Text('Registration, transfers, pickup & delivery, detailing', style: Theme.of(context).textTheme.bodyLarge)),
-                    const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+                    Expanded(child: Text(l10n.servicesConciergeDescription, style: Theme.of(context).textTheme.bodyLarge)),
+                    Icon(chevron, color: AppColors.textSecondary),
                   ],
                 ),
               ),
               const SizedBox(height: 20),
-              Text('Buy / Sell', style: Theme.of(context).textTheme.titleLarge),
+              Text(l10n.servicesBuySell, style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 12),
               GlassCard(
                 onTap: () => context.push('/listings'),
@@ -101,8 +104,8 @@ class ServicesHomeScreen extends StatelessWidget {
                   children: [
                     const Icon(Icons.directions_car_outlined, color: AppColors.goldLight),
                     const SizedBox(width: 12),
-                    Expanded(child: Text('Buy a Car — browse, compare, or list your own', style: Theme.of(context).textTheme.bodyLarge)),
-                    const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+                    Expanded(child: Text(l10n.servicesBuyACarDescription, style: Theme.of(context).textTheme.bodyLarge)),
+                    Icon(chevron, color: AppColors.textSecondary),
                   ],
                 ),
               ),

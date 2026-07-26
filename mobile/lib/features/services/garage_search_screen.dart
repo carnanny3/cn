@@ -5,6 +5,7 @@ import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/glass_card.dart';
 import '../../core/widgets/gradient_background.dart';
 import '../garage/garage_repository.dart';
+import '../../l10n/generated/app_localizations.dart';
 import 'partner_model.dart';
 import 'services_repository.dart';
 
@@ -70,7 +71,7 @@ class _GarageSearchScreenState extends State<GarageSearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final label = ServicesRepository.categories[widget.serviceCategory] ?? widget.serviceCategory;
+    final label = ServicesRepository.categoryLabel(AppLocalizations.of(context)!, widget.serviceCategory);
     return Scaffold(
       appBar: AppBar(title: Text(label)),
       body: GradientBackground(

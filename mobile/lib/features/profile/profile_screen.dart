@@ -4,10 +4,12 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../core/api/api_client.dart';
 import '../../core/state/auth_state.dart';
+import '../../core/state/locale_controller.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/glass_card.dart';
 import '../../core/widgets/gradient_background.dart';
 import '../../core/widgets/gradient_button.dart';
+import '../../l10n/generated/app_localizations.dart';
 import 'user_model.dart';
 import 'user_repository.dart';
 
@@ -72,7 +74,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           );
       if (!mounted) return;
       setState(() => _profile = updated);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profile updated.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.profileUpdated)));
     } on DioException catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(ApiClient.messageFrom(e))));
@@ -83,9 +85,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _changePassword() async {
+    final l10n = AppLocalizations.of(context)!;
     if (_newPasswordController.text.length < 8) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('New password must be at least 8 characters.')),
+        SnackBar(content: Text(l10n.profilePasswordTooShort)),
       );
       return;
     }
@@ -98,7 +101,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (!mounted) return;
       _currentPasswordController.clear();
       _newPasswordController.clear();
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Password updated.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.profilePasswordUpdated)));
     } on DioException catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(ApiClient.messageFrom(e))));
@@ -108,10 +111,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<void> _pickLanguage() async {
+    final l10n = AppLocalizations.of(context)!;
+    final localeController = context.read<LocaleController>();
+    final selected = await showDialog<Locale>(
+      context: context,
+      builder: (dialogContext) => SimpleDialog(
+        backgroundColor: AppColors.navyMid,
+        title: Text(l10n.profileChooseLanguage, style: const TextStyle(color: AppColors.textPrimary)),
+        children: [
+          SimpleDialogOption(
+            onPressed: () => Navigator.of(dialogContext).pop(const Locale('en')),
+            child: Text(l10n.profileLanguageEnglish, style: const TextStyle(color: AppColors.textPrimary)),
+          ),
+          SimpleDialogOption(
+            onPressed: () => Navigator.of(dialogContext).pop(const Locale('ar')),
+            child: Text(l10n.profileLanguageArabic, style: const TextStyle(color: AppColors.textPrimary)),
+          ),
+        ],
+      ),
+    );
+    if (selected == null) return;
+    await localeController.setLocale(selected);
+    if (!mounted) return;
+    try {
+      await context.read<UserRepository>().updateMe(preferredLanguage: selected.languageCode);
+    } catch (_) {
+      // Local UI language already switched; syncing the preference to the
+      // server is best-effort and shouldn't block the user.
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile')),
+      appBar: AppBar(title: Text(l10n.profileTitle)),
       body: GradientBackground(
         child: _loading
             ? const Center(child: CircularProgressIndicator())
@@ -136,30 +171,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Text('Account details', style: Theme.of(context).textTheme.titleLarge),
+                          Text(l10n.profileAccountDetails, style: Theme.of(context).textTheme.titleLarge),
                           const SizedBox(height: 16),
                           TextField(
                             controller: _nameController,
                             style: const TextStyle(color: AppColors.textPrimary),
-                            decoration: const InputDecoration(labelText: 'Full name'),
+                            decoration: InputDecoration(labelText: l10n.profileFullName),
                           ),
                           const SizedBox(height: 14),
                           TextField(
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
                             style: const TextStyle(color: AppColors.textPrimary),
-                            decoration: const InputDecoration(labelText: 'Email'),
+                            decoration: InputDecoration(labelText: l10n.profileEmail),
                           ),
                           const SizedBox(height: 14),
                           TextField(
                             controller: _phoneController,
                             keyboardType: TextInputType.phone,
                             style: const TextStyle(color: AppColors.textPrimary),
-                            decoration: const InputDecoration(labelText: 'Phone number'),
+                            decoration: InputDecoration(labelText: l10n.profilePhoneNumber),
                           ),
                           const SizedBox(height: 18),
                           GradientButton(
-                            label: 'Save changes',
+                            label: l10n.profileSaveChanges,
                             loading: _savingProfile,
                             onPressed: _savingProfile ? null : _saveProfile,
                           ),
@@ -171,24 +206,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Text('Change password', style: Theme.of(context).textTheme.titleLarge),
+                          Text(l10n.profileChangePassword, style: Theme.of(context).textTheme.titleLarge),
                           const SizedBox(height: 16),
                           TextField(
                             controller: _currentPasswordController,
                             obscureText: true,
                             style: const TextStyle(color: AppColors.textPrimary),
-                            decoration: const InputDecoration(labelText: 'Current password'),
+                            decoration: InputDecoration(labelText: l10n.profileCurrentPassword),
                           ),
                           const SizedBox(height: 14),
                           TextField(
                             controller: _newPasswordController,
                             obscureText: true,
                             style: const TextStyle(color: AppColors.textPrimary),
-                            decoration: const InputDecoration(labelText: 'New password'),
+                            decoration: InputDecoration(labelText: l10n.profileNewPassword),
                           ),
                           const SizedBox(height: 18),
                           GradientButton(
-                            label: 'Update password',
+                            label: l10n.profileUpdatePassword,
                             loading: _savingPassword,
                             onPressed: _savingPassword ? null : _changePassword,
                           ),
@@ -200,15 +235,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          const _MenuRow(icon: Icons.credit_card_outlined, label: 'Payment Methods'),
-                          const _MenuRow(icon: Icons.notifications_outlined, label: 'Notification Preferences'),
-                          const _MenuRow(icon: Icons.language_outlined, label: 'Language & Region'),
+                          _MenuRow(icon: Icons.credit_card_outlined, label: l10n.profilePaymentMethods),
+                          _MenuRow(icon: Icons.notifications_outlined, label: l10n.profileNotificationPreferences),
+                          _MenuRow(icon: Icons.language_outlined, label: l10n.profileLanguageAndRegion, onTap: _pickLanguage),
                           _MenuRow(
                             icon: Icons.card_giftcard_outlined,
-                            label: 'Rewards & Referrals',
+                            label: l10n.profileRewardsAndReferrals,
                             onTap: () => context.push('/rewards'),
                           ),
-                          _MenuRow(icon: Icons.help_outline, label: 'Support', onTap: () => context.push('/support')),
+                          _MenuRow(icon: Icons.help_outline, label: l10n.profileSupport, onTap: () => context.push('/support')),
                         ],
                       ),
                     ),
@@ -216,7 +251,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     OutlinedButton.icon(
                       onPressed: () => context.read<AuthState>().logout(),
                       icon: const Icon(Icons.logout, color: AppColors.statusRed),
-                      label: const Text('Log out', style: TextStyle(color: AppColors.statusRed)),
+                      label: Text(l10n.profileLogOut, style: const TextStyle(color: AppColors.statusRed)),
                       style: OutlinedButton.styleFrom(
                         minimumSize: const Size.fromHeight(52),
                         side: const BorderSide(color: AppColors.glassBorder),
@@ -250,7 +285,10 @@ class _MenuRow extends StatelessWidget {
             Icon(icon, color: AppColors.textSecondary, size: 20),
             const SizedBox(width: 14),
             Expanded(child: Text(label, style: Theme.of(context).textTheme.bodyLarge)),
-            const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+            Icon(
+              Directionality.of(context) == TextDirection.rtl ? Icons.chevron_left : Icons.chevron_right,
+              color: AppColors.textSecondary,
+            ),
           ],
         ),
       ),

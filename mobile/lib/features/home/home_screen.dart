@@ -7,6 +7,7 @@ import '../../core/widgets/glass_card.dart';
 import '../../core/widgets/gradient_background.dart';
 import '../garage/garage_repository.dart';
 import '../garage/vehicle_model.dart';
+import '../../l10n/generated/app_localizations.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -30,6 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -39,7 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Image.asset('assets/images/logo_icon.png', height: 28, width: 28),
             const SizedBox(width: 10),
-            const Text('Car Nanny'),
+            Text(l10n.appTitle),
           ],
         ),
       ),
@@ -54,9 +56,9 @@ class _HomeScreenState extends State<HomeScreen> {
               if (snapshot.hasError) {
                 return EmptyState(
                   icon: Icons.wifi_off,
-                  title: 'Could not reach Car Nanny',
-                  message: 'Check your connection to the server and try again.',
-                  actionLabel: 'Retry',
+                  title: l10n.homeCouldNotReach,
+                  message: l10n.homeCheckConnection,
+                  actionLabel: l10n.commonRetry,
                   onAction: () => setState(_reload),
                 );
               }
@@ -64,9 +66,9 @@ class _HomeScreenState extends State<HomeScreen> {
               if (vehicles.isEmpty) {
                 return EmptyState(
                   icon: Icons.garage_outlined,
-                  title: 'Add your first vehicle',
-                  message: 'Unlock your Health Score, service reminders, and more.',
-                  actionLabel: 'Add Vehicle',
+                  title: l10n.homeAddFirstVehicle,
+                  message: l10n.homeUnlockHealthScore,
+                  actionLabel: l10n.homeAddVehicle,
                   onAction: () => context.push('/garage/add'),
                 );
               }
@@ -75,7 +77,7 @@ class _HomeScreenState extends State<HomeScreen> {
               return ListView(
                 padding: const EdgeInsets.fromLTRB(16, 96, 16, 120),
                 children: [
-                  Text('Good to see you', style: Theme.of(context).textTheme.headlineMedium),
+                  Text(l10n.homeGreeting, style: Theme.of(context).textTheme.headlineMedium),
                   const SizedBox(height: 16),
                   GlassCard(
                     glow: true,
@@ -103,14 +105,14 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
                             const SizedBox(width: 14),
-                            const Expanded(child: Text('Vehicle Health Score')),
+                            Expanded(child: Text(l10n.homeVehicleHealthScore)),
                           ],
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 24),
-                  Text('Quick actions', style: Theme.of(context).textTheme.titleLarge),
+                  Text(l10n.homeQuickActions, style: Theme.of(context).textTheme.titleLarge),
                   const SizedBox(height: 12),
                   GridView.count(
                     crossAxisCount: 2,
@@ -120,11 +122,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     crossAxisSpacing: 12,
                     childAspectRatio: 2.4,
                     children: [
-                      _QuickAction(icon: Icons.build_outlined, label: 'Book Service', onTap: () => context.go('/services')),
-                      _QuickAction(icon: Icons.fact_check_outlined, label: 'Inspect a Car', onTap: () => context.push('/inspection/book')),
-                      _QuickAction(icon: Icons.garage_outlined, label: 'My Garage', onTap: () => context.go('/garage')),
-                      _QuickAction(icon: Icons.smart_toy_outlined, label: 'Ask AI', onTap: () => context.go('/ai')),
-                      _QuickAction(icon: Icons.support_agent_outlined, label: 'Roadside Help', onTap: () => context.push('/roadside')),
+                      _QuickAction(icon: Icons.build_outlined, label: l10n.homeBookService, onTap: () => context.go('/services')),
+                      _QuickAction(icon: Icons.fact_check_outlined, label: l10n.homeInspectACar, onTap: () => context.push('/inspection/book')),
+                      _QuickAction(icon: Icons.garage_outlined, label: l10n.homeMyGarage, onTap: () => context.go('/garage')),
+                      _QuickAction(icon: Icons.smart_toy_outlined, label: l10n.homeAskAi, onTap: () => context.go('/ai')),
+                      _QuickAction(icon: Icons.support_agent_outlined, label: l10n.homeRoadsideHelp, onTap: () => context.push('/roadside')),
                     ],
                   ),
                 ],

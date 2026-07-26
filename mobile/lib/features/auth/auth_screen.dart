@@ -6,6 +6,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/widgets/glass_card.dart';
 import '../../core/widgets/gradient_background.dart';
 import '../../core/widgets/gradient_button.dart';
+import '../../l10n/generated/app_localizations.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -50,7 +51,7 @@ class _AuthScreenState extends State<AuthScreen> {
     setState(() => _submitting = false);
     if (!ok) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(auth.lastError ?? 'Something went wrong.')),
+        SnackBar(content: Text(auth.lastError ?? AppLocalizations.of(context)!.commonSomethingWentWrong)),
       );
     }
     // On success, AuthState.status flips to signedIn and the router's
@@ -60,12 +61,13 @@ class _AuthScreenState extends State<AuthScreen> {
 
   void _showGoogleComingSoon() {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Google Sign-In is coming soon.')),
+      SnackBar(content: Text(AppLocalizations.of(context)!.authGoogleComingSoon)),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       body: GradientBackground(
         child: SafeArea(
@@ -82,10 +84,10 @@ class _AuthScreenState extends State<AuthScreen> {
                       const SizedBox(height: 16),
                       ShaderMask(
                         shaderCallback: (bounds) => AppColors.goldGradient.createShader(bounds),
-                        child: Text('Car Nanny', style: Theme.of(context).textTheme.displayLarge?.copyWith(color: Colors.white)),
+                        child: Text(l10n.appTitle, style: Theme.of(context).textTheme.displayLarge?.copyWith(color: Colors.white)),
                       ),
                       const SizedBox(height: 6),
-                      Text('Your Car. Our Responsibility.', style: Theme.of(context).textTheme.bodyLarge),
+                      Text(l10n.appTagline, style: Theme.of(context).textTheme.bodyLarge),
                     ],
                   ),
                 ),
@@ -98,13 +100,15 @@ class _AuthScreenState extends State<AuthScreen> {
                       _ModeToggle(
                         isRegister: _isRegister,
                         onChanged: (v) => setState(() => _isRegister = v),
+                        signUpLabel: l10n.authSignUp,
+                        logInLabel: l10n.authLogIn,
                       ),
                       const SizedBox(height: 20),
                       if (_isRegister) ...[
                         TextField(
                           controller: _nameController,
                           style: const TextStyle(color: AppColors.textPrimary),
-                          decoration: const InputDecoration(labelText: 'Full name'),
+                          decoration: InputDecoration(labelText: l10n.authFullName),
                         ),
                         const SizedBox(height: 14),
                       ],
@@ -112,7 +116,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
                         style: const TextStyle(color: AppColors.textPrimary),
-                        decoration: const InputDecoration(labelText: 'Email'),
+                        decoration: InputDecoration(labelText: l10n.authEmail),
                       ),
                       const SizedBox(height: 14),
                       TextField(
@@ -120,7 +124,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         obscureText: _obscurePassword,
                         style: const TextStyle(color: AppColors.textPrimary),
                         decoration: InputDecoration(
-                          labelText: 'Password',
+                          labelText: l10n.authPassword,
                           suffixIcon: IconButton(
                             icon: Icon(
                               _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
@@ -136,29 +140,29 @@ class _AuthScreenState extends State<AuthScreen> {
                           controller: _phoneController,
                           keyboardType: TextInputType.phone,
                           style: const TextStyle(color: AppColors.textPrimary),
-                          decoration: const InputDecoration(labelText: 'Phone number (optional)'),
+                          decoration: InputDecoration(labelText: l10n.authPhoneOptional),
                         ),
                         const SizedBox(height: 14),
                         TextField(
                           controller: _referralCodeController,
                           textCapitalization: TextCapitalization.characters,
                           style: const TextStyle(color: AppColors.textPrimary),
-                          decoration: const InputDecoration(labelText: 'Referral code (optional)'),
+                          decoration: InputDecoration(labelText: l10n.authReferralCodeOptional),
                         ),
                       ],
                       if (!_isRegister) ...[
                         const SizedBox(height: 4),
                         Align(
-                          alignment: Alignment.centerRight,
+                          alignment: AlignmentDirectional.centerEnd,
                           child: TextButton(
                             onPressed: () => context.push('/auth/forgot-password'),
-                            child: const Text('Forgot password?'),
+                            child: Text(l10n.authForgotPassword),
                           ),
                         ),
                       ],
                       const SizedBox(height: 12),
                       GradientButton(
-                        label: _isRegister ? 'Create account' : 'Log in',
+                        label: _isRegister ? l10n.authCreateAccount : l10n.authLogIn,
                         loading: _submitting,
                         onPressed: _submitting ? null : _submit,
                       ),
@@ -168,7 +172,7 @@ class _AuthScreenState extends State<AuthScreen> {
                           const Expanded(child: Divider(color: AppColors.glassBorder)),
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 12),
-                            child: Text('or', style: Theme.of(context).textTheme.bodySmall),
+                            child: Text(l10n.authOr, style: Theme.of(context).textTheme.bodySmall),
                           ),
                           const Expanded(child: Divider(color: AppColors.glassBorder)),
                         ],
@@ -177,7 +181,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       OutlinedButton.icon(
                         onPressed: _showGoogleComingSoon,
                         icon: const Icon(Icons.g_mobiledata, size: 26),
-                        label: const Text('Continue with Google'),
+                        label: Text(l10n.authContinueWithGoogle),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: AppColors.textSecondary,
                           side: const BorderSide(color: AppColors.glassBorder),
@@ -192,7 +196,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 Center(
                   child: TextButton(
                     onPressed: () => context.push('/partner-signup'),
-                    child: const Text('Own a garage or inspection business? Become a partner'),
+                    child: Text(l10n.authBecomePartner),
                   ),
                 ),
               ],
@@ -205,10 +209,17 @@ class _AuthScreenState extends State<AuthScreen> {
 }
 
 class _ModeToggle extends StatelessWidget {
-  const _ModeToggle({required this.isRegister, required this.onChanged});
+  const _ModeToggle({
+    required this.isRegister,
+    required this.onChanged,
+    required this.signUpLabel,
+    required this.logInLabel,
+  });
 
   final bool isRegister;
   final ValueChanged<bool> onChanged;
+  final String signUpLabel;
+  final String logInLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -221,8 +232,8 @@ class _ModeToggle extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Expanded(child: _ModeSegment(label: 'Sign up', selected: isRegister, onTap: () => onChanged(true))),
-          Expanded(child: _ModeSegment(label: 'Log in', selected: !isRegister, onTap: () => onChanged(false))),
+          Expanded(child: _ModeSegment(label: signUpLabel, selected: isRegister, onTap: () => onChanged(true))),
+          Expanded(child: _ModeSegment(label: logInLabel, selected: !isRegister, onTap: () => onChanged(false))),
         ],
       ),
     );

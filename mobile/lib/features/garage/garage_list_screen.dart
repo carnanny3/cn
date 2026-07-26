@@ -7,6 +7,7 @@ import '../../core/widgets/glass_card.dart';
 import '../../core/widgets/gradient_background.dart';
 import 'garage_repository.dart';
 import 'vehicle_model.dart';
+import '../../l10n/generated/app_localizations.dart';
 
 class GarageListScreen extends StatefulWidget {
   const GarageListScreen({super.key});
@@ -30,11 +31,12 @@ class _GarageListScreenState extends State<GarageListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        title: const Text('My Garage'),
+        title: Text(l10n.garageTitle),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
@@ -53,9 +55,9 @@ class _GarageListScreenState extends State<GarageListScreen> {
               if (snapshot.hasError) {
                 return EmptyState(
                   icon: Icons.wifi_off,
-                  title: 'Could not load your garage',
-                  message: 'Check your connection to the server and try again.',
-                  actionLabel: 'Retry',
+                  title: l10n.garageCouldNotLoad,
+                  message: l10n.homeCheckConnection,
+                  actionLabel: l10n.commonRetry,
                   onAction: () => setState(_reload),
                 );
               }
@@ -63,9 +65,9 @@ class _GarageListScreenState extends State<GarageListScreen> {
               if (vehicles.isEmpty) {
                 return EmptyState(
                   icon: Icons.garage_outlined,
-                  title: 'No vehicles yet',
-                  message: 'Add your first vehicle to unlock its Health Score and service history.',
-                  actionLabel: 'Add Vehicle',
+                  title: l10n.garageNoVehiclesYet,
+                  message: l10n.garageAddFirstVehicleLong,
+                  actionLabel: l10n.homeAddVehicle,
                   onAction: () => context.push('/garage/add').then((_) => setState(_reload)),
                 );
               }
@@ -108,7 +110,10 @@ class _GarageListScreenState extends State<GarageListScreen> {
                             ),
                           )
                         else
-                          const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+                          Icon(
+                            Directionality.of(context) == TextDirection.rtl ? Icons.chevron_left : Icons.chevron_right,
+                            color: AppColors.textSecondary,
+                          ),
                       ],
                     ),
                   );

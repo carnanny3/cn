@@ -5,7 +5,9 @@ import 'package:provider/provider.dart';
 import 'core/api/api_client.dart';
 import 'core/app_router.dart';
 import 'core/state/auth_state.dart';
+import 'core/state/locale_controller.dart';
 import 'core/theme/app_theme.dart';
+import 'l10n/generated/app_localizations.dart';
 import 'features/ai/ai_repository.dart';
 import 'features/concierge/concierge_repository.dart';
 import 'features/garage/garage_repository.dart';
@@ -34,6 +36,7 @@ class CarNannyApp extends StatefulWidget {
 class _CarNannyAppState extends State<CarNannyApp> {
   late final ApiClient _apiClient;
   late final AuthState _authState;
+  late final LocaleController _localeController;
   late final GoRouter _router;
 
   @override
@@ -41,9 +44,11 @@ class _CarNannyAppState extends State<CarNannyApp> {
     super.initState();
     _apiClient = ApiClient();
     _authState = AuthState(_apiClient);
+    _localeController = LocaleController();
     _apiClient.onUnauthorized = _authState.logout;
     _router = buildRouter(_authState);
     _authState.bootstrap();
+    _localeController.bootstrap();
   }
 
   @override
@@ -51,6 +56,7 @@ class _CarNannyAppState extends State<CarNannyApp> {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: _authState),
+        ChangeNotifierProvider.value(value: _localeController),
         Provider.value(value: _apiClient),
         Provider(create: (_) => GarageRepository(_apiClient)),
         Provider(create: (_) => InspectionRepository(_apiClient)),
@@ -66,19 +72,23 @@ class _CarNannyAppState extends State<CarNannyApp> {
         Provider(create: (_) => ConciergeRepository(_apiClient)),
         Provider(create: (_) => ListingRepository(_apiClient)),
       ],
-      child: MaterialApp.router(
-        title: 'Car Nanny',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.build(),
-        darkTheme: AppTheme.build(),
-        themeMode: ThemeMode.dark,
-        routerConfig: _router,
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: const [Locale('en'), Locale('ar')],
+      child: Consumer<LocaleController>(
+        builder: (context, localeController, _) => MaterialApp.router(
+          title: 'Car Nanny',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.build(),
+          darkTheme: AppTheme.build(),
+          themeMode: ThemeMode.dark,
+          routerConfig: _router,
+          locale: localeController.locale,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
       ),
     );
   }

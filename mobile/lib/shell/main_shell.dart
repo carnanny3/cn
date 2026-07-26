@@ -2,23 +2,24 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../core/theme/app_colors.dart';
+import '../l10n/generated/app_localizations.dart';
 
 class MainShell extends StatelessWidget {
   const MainShell({super.key, required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
 
-  static const _items = [
-    (icon: Icons.home_outlined, selectedIcon: Icons.home, label: 'Home'),
-    (icon: Icons.garage_outlined, selectedIcon: Icons.garage, label: 'Garage'),
-    (icon: Icons.build_outlined, selectedIcon: Icons.build, label: 'Services'),
-    (icon: Icons.receipt_long_outlined, selectedIcon: Icons.receipt_long, label: 'Bookings'),
-    (icon: Icons.smart_toy_outlined, selectedIcon: Icons.smart_toy, label: 'AI'),
-    (icon: Icons.person_outline, selectedIcon: Icons.person, label: 'Profile'),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final items = [
+      (icon: Icons.home_outlined, selectedIcon: Icons.home, label: l10n.navHome),
+      (icon: Icons.garage_outlined, selectedIcon: Icons.garage, label: l10n.navGarage),
+      (icon: Icons.build_outlined, selectedIcon: Icons.build, label: l10n.navServices),
+      (icon: Icons.receipt_long_outlined, selectedIcon: Icons.receipt_long, label: l10n.navBookings),
+      (icon: Icons.smart_toy_outlined, selectedIcon: Icons.smart_toy, label: l10n.navAi),
+      (icon: Icons.person_outline, selectedIcon: Icons.person, label: l10n.navProfile),
+    ];
     return Scaffold(
       extendBody: true,
       body: navigationShell,
@@ -40,8 +41,8 @@ class MainShell extends StatelessWidget {
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: List.generate(_items.length, (index) {
-                  final item = _items[index];
+                children: List.generate(items.length, (index) {
+                  final item = items[index];
                   final selected = navigationShell.currentIndex == index;
                   return _NavItem(
                     icon: selected ? item.selectedIcon : item.icon,

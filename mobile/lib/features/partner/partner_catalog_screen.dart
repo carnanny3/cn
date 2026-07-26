@@ -6,6 +6,7 @@ import '../../core/widgets/glass_card.dart';
 import '../../core/widgets/gradient_background.dart';
 import '../../core/widgets/gradient_button.dart';
 import '../services/services_repository.dart';
+import '../../l10n/generated/app_localizations.dart';
 import 'partner_model.dart';
 import 'partner_repository.dart';
 
@@ -45,7 +46,8 @@ class _PartnerCatalogScreenState extends State<PartnerCatalogScreen> {
   }
 
   Future<void> _showAddServiceSheet() async {
-    String category = ServicesRepository.categories.keys.first;
+    final l10n = AppLocalizations.of(context)!;
+    String category = ServicesRepository.categoryKeys.first;
     final priceController = TextEditingController();
     final durationController = TextEditingController();
     bool submitting = false;
@@ -76,8 +78,8 @@ class _PartnerCatalogScreenState extends State<PartnerCatalogScreen> {
                       initialValue: category,
                       dropdownColor: AppColors.navyMid,
                       style: const TextStyle(color: AppColors.textPrimary),
-                      items: ServicesRepository.categories.entries
-                          .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
+                      items: ServicesRepository.categoryKeys
+                          .map((key) => DropdownMenuItem(value: key, child: Text(ServicesRepository.categoryLabel(l10n, key))))
                           .toList(),
                       onChanged: (value) => setSheetState(() => category = value ?? category),
                     ),
@@ -169,7 +171,7 @@ class _PartnerCatalogScreenState extends State<PartnerCatalogScreen> {
                 separatorBuilder: (_, __) => const SizedBox(height: 12),
                 itemBuilder: (context, index) {
                   final service = services[index];
-                  final label = ServicesRepository.categories[service.serviceCategory] ?? service.serviceCategory;
+                  final label = ServicesRepository.categoryLabel(AppLocalizations.of(context)!, service.serviceCategory);
                   final busy = _busyServiceId == service.id;
                   return GlassCard(
                     child: Row(

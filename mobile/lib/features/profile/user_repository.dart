@@ -11,11 +11,17 @@ class UserRepository {
     return UserProfile.fromJson(response.data as Map<String, dynamic>);
   }
 
-  Future<UserProfile> updateMe({String? fullName, String? email, String? phoneNumber}) async {
+  Future<UserProfile> updateMe({
+    String? fullName,
+    String? email,
+    String? phoneNumber,
+    String? preferredLanguage,
+  }) async {
     final response = await apiClient.dio.patch('/users/me', data: {
       if (fullName != null && fullName.isNotEmpty) 'fullName': fullName,
       if (email != null && email.isNotEmpty) 'email': email,
       if (phoneNumber != null && phoneNumber.isNotEmpty) 'phoneNumber': phoneNumber,
+      if (preferredLanguage != null) 'preferredLanguage': preferredLanguage,
     });
     return UserProfile.fromJson(response.data as Map<String, dynamic>);
   }

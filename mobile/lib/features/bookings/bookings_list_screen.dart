@@ -7,6 +7,7 @@ import '../../core/widgets/gradient_background.dart';
 import '../../core/widgets/status_badge.dart';
 import '../services/services_repository.dart';
 import 'booking_model.dart';
+import '../../l10n/generated/app_localizations.dart';
 
 class BookingsListScreen extends StatefulWidget {
   const BookingsListScreen({super.key});
@@ -52,16 +53,17 @@ class _BookingsListScreenState extends State<BookingsListScreen> {
     return '${d.day} ${months[d.month - 1]} ${d.year}';
   }
 
-  String _titleFor(Booking b) {
-    if (b.bookingType == 'inspection') return 'Pre-Purchase Inspection';
-    return ServicesRepository.categories[b.serviceCategory] ?? b.bookingType;
+  String _titleFor(AppLocalizations l10n, Booking b) {
+    if (b.bookingType == 'inspection') return l10n.bookingPrePurchaseInspection;
+    return ServicesRepository.categoryLabel(l10n, b.serviceCategory ?? '');
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: AppBar(backgroundColor: Colors.transparent, title: const Text('Bookings')),
+      appBar: AppBar(backgroundColor: Colors.transparent, title: Text(l10n.navBookings)),
       body: GradientBackground(
         child: SafeArea(
           child: FutureBuilder<List<Booking>>(
@@ -73,18 +75,18 @@ class _BookingsListScreenState extends State<BookingsListScreen> {
               if (snapshot.hasError) {
                 return EmptyState(
                   icon: Icons.wifi_off,
-                  title: 'Could not load your bookings',
-                  message: 'Check your connection to the Car Nanny server and try again.',
-                  actionLabel: 'Retry',
+                  title: l10n.bookingsCouldNotLoad,
+                  message: l10n.bookingsCheckConnection,
+                  actionLabel: l10n.commonRetry,
                   onAction: () => setState(_reload),
                 );
               }
               final bookings = snapshot.data!;
               if (bookings.isEmpty) {
-                return const EmptyState(
+                return EmptyState(
                   icon: Icons.receipt_long_outlined,
-                  title: 'No bookings yet',
-                  message: 'Service and inspection bookings you make will show up here.',
+                  title: l10n.bookingsNoneYet,
+                  message: l10n.bookingsNoneYetMessage,
                 );
               }
               return RefreshIndicator(
@@ -102,7 +104,7 @@ class _BookingsListScreenState extends State<BookingsListScreen> {
                           Row(
                             children: [
                               Expanded(
-                                child: Text(_titleFor(b), style: Theme.of(context).textTheme.titleLarge),
+                                child: Text(_titleFor(l10n, b), style: Theme.of(context).textTheme.titleLarge),
                               ),
                               StatusBadge(status: b.statusColorKey, label: b.status.replaceAll('_', ' ')),
                             ],
@@ -124,7 +126,7 @@ class _BookingsListScreenState extends State<BookingsListScreen> {
                                 TextButton(
                                   onPressed: _cancellingId == b.id ? null : () => _cancel(b),
                                   child: Text(
-                                    _cancellingId == b.id ? 'Cancelling...' : 'Cancel',
+                                    _cancellingId == b.id ? l10n.bookingsCancelling : l10n.bookingsCancel,
                                     style: const TextStyle(color: AppColors.statusRed),
                                   ),
                                 ),
