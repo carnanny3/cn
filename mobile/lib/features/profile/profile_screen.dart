@@ -235,6 +235,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
+                          _MenuRow(
+                            icon: Icons.grid_view_outlined,
+                            label: l10n.moreServicesTitle,
+                            onTap: () => context.push('/more'),
+                          ),
                           _MenuRow(icon: Icons.credit_card_outlined, label: l10n.profilePaymentMethods),
                           _MenuRow(icon: Icons.notifications_outlined, label: l10n.profileNotificationPreferences),
                           _MenuRow(icon: Icons.language_outlined, label: l10n.profileLanguageAndRegion, onTap: _pickLanguage),

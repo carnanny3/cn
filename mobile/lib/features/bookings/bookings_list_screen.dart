@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/empty_state.dart';
@@ -38,7 +39,7 @@ class _BookingsListScreenState extends State<BookingsListScreen> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not cancel this booking. Check your connection and try again.')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.bookingsCancelFailed)),
         );
       }
     } finally {
@@ -87,16 +88,23 @@ class _BookingsListScreenState extends State<BookingsListScreen> {
                   icon: Icons.receipt_long_outlined,
                   title: l10n.bookingsNoneYet,
                   message: l10n.bookingsNoneYetMessage,
+                  actionLabel: l10n.homeBookService,
+                  onAction: () => context.push('/services').then((_) => setState(_reload)),
                 );
               }
               return RefreshIndicator(
                 onRefresh: () async => setState(_reload),
                 child: ListView.separated(
                   padding: const EdgeInsets.fromLTRB(16, 96, 16, 32),
-                  itemCount: bookings.length,
+                  // Row 0 is the "book something" entry point — booking used to
+                  // live in its own tab, so this tab has to offer it directly.
+                  itemCount: bookings.length + 1,
                   separatorBuilder: (_, __) => const SizedBox(height: 12),
                   itemBuilder: (context, index) {
-                    final b = bookings[index];
+                    if (index == 0) {
+                      return _BookCtas(onBooked: () => setState(_reload));
+                    }
+                    final b = bookings[index - 1];
                     return GlassCard(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -141,6 +149,61 @@ class _BookingsListScreenState extends State<BookingsListScreen> {
             },
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// The two things a customer can start from this tab. Sits above the booking
+/// list so an empty-handed user always has an obvious next step.
+class _BookCtas extends StatelessWidget {
+  const _BookCtas({required this.onBooked});
+
+  final VoidCallback onBooked;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Row(
+      children: [
+        Expanded(
+          child: _Cta(
+            icon: Icons.build_outlined,
+            label: l10n.homeBookService,
+            onTap: () => context.push('/services').then((_) => onBooked()),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _Cta(
+            icon: Icons.fact_check_outlined,
+            label: l10n.homeInspectACar,
+            onTap: () => context.push('/inspection/book').then((_) => onBooked()),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _Cta extends StatelessWidget {
+  const _Cta({required this.icon, required this.label, required this.onTap});
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassCard(
+      onTap: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: AppColors.goldLight),
+          const SizedBox(height: 10),
+          Text(label, style: Theme.of(context).textTheme.bodyLarge),
+        ],
       ),
     );
   }

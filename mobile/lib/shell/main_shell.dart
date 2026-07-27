@@ -12,12 +12,13 @@ class MainShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    // Three destinations only: the customer's job is to keep vehicles, book
+    // work on them, and manage their account. Everything else (warranty,
+    // insurance, concierge, marketplace, AI) lives behind Profile → More
+    // Services so it doesn't compete with the core loop.
     final items = [
-      (icon: Icons.home_outlined, selectedIcon: Icons.home, label: l10n.navHome),
       (icon: Icons.garage_outlined, selectedIcon: Icons.garage, label: l10n.navGarage),
-      (icon: Icons.build_outlined, selectedIcon: Icons.build, label: l10n.navServices),
       (icon: Icons.receipt_long_outlined, selectedIcon: Icons.receipt_long, label: l10n.navBookings),
-      (icon: Icons.smart_toy_outlined, selectedIcon: Icons.smart_toy, label: l10n.navAi),
       (icon: Icons.person_outline, selectedIcon: Icons.person, label: l10n.navProfile),
     ];
     return Scaffold(
@@ -84,13 +85,17 @@ class _NavItem extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(icon, size: 22, color: selected ? AppColors.navyDeep : AppColors.textSecondary),
-            if (selected) ...[
-              const SizedBox(height: 2),
-              Text(
-                label,
-                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.navyDeep),
+            const SizedBox(height: 2),
+            // Labels stay visible on every tab — with only three destinations
+            // there's room, and unlabelled icons made the bar hard to read.
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: selected ? AppColors.navyDeep : AppColors.textSecondary,
               ),
-            ],
+            ),
           ],
         ),
       ),

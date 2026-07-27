@@ -95,6 +95,9 @@
   "bookingsNoneYetMessage": "ستظهر هنا حجوزات الخدمة والفحص التي تقوم بها.",
   "bookingsCancelling": "جارٍ الإلغاء...",
   "bookingsCancel": "إلغاء",
+  "bookingsCancelFailed": "تعذّر إلغاء هذا الحجز. تحقق من اتصالك وحاول مرة أخرى.",
+
+  "moreServicesTitle": "خدمات أخرى",
 
   "partnerNavHome": "الرئيسية",
   "partnerNavJobs": "المهام",

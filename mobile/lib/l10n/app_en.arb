@@ -95,6 +95,9 @@
   "bookingsNoneYetMessage": "Service and inspection bookings you make will show up here.",
   "bookingsCancelling": "Cancelling...",
   "bookingsCancel": "Cancel",
+  "bookingsCancelFailed": "Could not cancel this booking. Check your connection and try again.",
+
+  "moreServicesTitle": "More Services",
 
   "partnerNavHome": "Home",
   "partnerNavJobs": "Jobs",
