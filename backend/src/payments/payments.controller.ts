@@ -42,7 +42,7 @@ export class PaymentsController {
     return this.paymentsService.confirm(id);
   }
 
-  @Roles('admin_finance', 'admin_super')
+  @Roles('accountant', 'accounts_manager', 'admin_super')
   @Post(':id/refund')
   async refund(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Req() req: Request) {
     const before = await this.paymentsService.findOne(id);

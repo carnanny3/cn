@@ -28,7 +28,8 @@ enum UserRole {
   admin_ops
   admin_inspection
   admin_support
-  admin_finance
+  accountant
+  accounts_manager
   admin_partner_manager
   admin_content
   admin_compliance
@@ -319,6 +320,7 @@ model User {
   conciergeOrders    ConciergeOrder[]
   vehicleListings    VehicleListing[]
   deviceTokens       DeviceToken[]
+  invoices           Invoice[]
 
   @@map("users")
 }
@@ -608,8 +610,37 @@ model Payment {
   createdAt         DateTime          @default(now()) @map("created_at")
   updatedAt         DateTime          @updatedAt @map("updated_at")
 
+  invoice Invoice?
+
   @@index([customerId])
   @@map("payments")
+}
+
+enum InvoiceStatus {
+  issued
+  refunded
+  void
+}
+
+model Invoice {
+  id            String        @id @default(uuid())
+  invoiceNumber String        @unique @map("invoice_number")
+  paymentId     String        @unique @map("payment_id")
+  customerId    String        @map("customer_id")
+  description   String
+  subtotal      Float
+  vatAmount     Float         @map("vat_amount")
+  totalAmount   Float         @map("total_amount")
+  currency      String        @default("AED")
+  status        InvoiceStatus @default(issued)
+  issuedAt      DateTime      @default(now()) @map("issued_at")
+  createdAt     DateTime      @default(now()) @map("created_at")
+
+  payment  Payment @relation(fields: [paymentId], references: [id])
+  customer User    @relation(fields: [customerId], references: [id])
+
+  @@index([customerId])
+  @@map("invoices")
 }
 
 model Notification {

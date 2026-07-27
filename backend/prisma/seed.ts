@@ -43,6 +43,34 @@ async function main() {
     },
   });
 
+  const accountant = await prisma.user.upsert({
+    where: { email: 'accountant@carnanny.app' },
+    update: { passwordHash: hashPassword(SEED_PASSWORD) },
+    create: {
+      email: 'accountant@carnanny.app',
+      phoneNumber: '+971500000097',
+      fullName: 'Car Nanny Accountant',
+      passwordHash: hashPassword(SEED_PASSWORD),
+      preferredLanguage: 'en',
+      status: 'active',
+      role: 'accountant',
+    },
+  });
+
+  const accountsManager = await prisma.user.upsert({
+    where: { email: 'accounts.manager@carnanny.app' },
+    update: { passwordHash: hashPassword(SEED_PASSWORD) },
+    create: {
+      email: 'accounts.manager@carnanny.app',
+      phoneNumber: '+971500000098',
+      fullName: 'Car Nanny Accounts Manager',
+      passwordHash: hashPassword(SEED_PASSWORD),
+      preferredLanguage: 'en',
+      status: 'active',
+      role: 'accounts_manager',
+    },
+  });
+
   const vehicle = await prisma.vehicle.upsert({
     where: { vin: 'JTDBR32E720123456' },
     update: {},
@@ -174,6 +202,37 @@ async function main() {
     },
   });
 
+  const inspectionPayment = await prisma.payment.upsert({
+    where: { id: 'seed-payment-inspection-1' },
+    update: {},
+    create: {
+      id: 'seed-payment-inspection-1',
+      relatedEntityType: 'inspection',
+      relatedEntityId: inspection.id,
+      customerId: customer.id,
+      amount: 349,
+      vatAmount: 16.62,
+      paymentMethod: 'card',
+      provider: 'none',
+      status: 'captured',
+    },
+  });
+
+  await prisma.invoice.upsert({
+    where: { id: 'seed-invoice-inspection-1' },
+    update: {},
+    create: {
+      id: 'seed-invoice-inspection-1',
+      invoiceNumber: 'INV-SEED0001',
+      paymentId: inspectionPayment.id,
+      customerId: customer.id,
+      description: 'Vehicle Inspection',
+      subtotal: 332.38,
+      vatAmount: 16.62,
+      totalAmount: 349,
+    },
+  });
+
   const warrantyProviderPartner = await prisma.partner.upsert({
     where: { id: 'seed-partner-warranty' },
     update: {},
@@ -226,6 +285,8 @@ async function main() {
   console.log('Seed complete.');
   console.log(`Sample customer: ${customer.email} / password: ${SEED_PASSWORD}`);
   console.log(`Sample admin: ${admin.email} / password: ${SEED_PASSWORD}`);
+  console.log(`Sample accountant: ${accountant.email} / password: ${SEED_PASSWORD}`);
+  console.log(`Sample accounts manager: ${accountsManager.email} / password: ${SEED_PASSWORD}`);
   console.log(`Sample vehicle: ${vehicle.year} ${vehicle.make} ${vehicle.model} (id=${vehicle.id})`);
 }
 

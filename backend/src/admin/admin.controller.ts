@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, Req } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, Req, StreamableFile } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { AdminService } from './admin.service';
@@ -16,6 +16,7 @@ import { ListingsService } from '../listings/listings.service';
 import { UpdateListingStatusDto } from '../listings/dto/update-listing-status.dto';
 import { PaymentsService } from '../payments/payments.service';
 import { AuditLogService } from '../audit-log/audit-log.service';
+import { InvoicesService } from '../invoices/invoices.service';
 import { CurrentUser, JwtPayload } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 
@@ -26,7 +27,8 @@ const ANY_ADMIN = [
   'admin_ops',
   'admin_inspection',
   'admin_support',
-  'admin_finance',
+  'accountant',
+  'accounts_manager',
   'admin_partner_manager',
   'admin_content',
   'admin_compliance',
@@ -35,8 +37,8 @@ const ANY_ADMIN = [
 const OPS = ['admin_super', 'admin_ops'] as const;
 const INSPECTION = ['admin_super', 'admin_inspection'] as const;
 const SUPPORT = ['admin_super', 'admin_support'] as const;
-const FINANCE = ['admin_super', 'admin_finance'] as const;
-const FINANCE_OR_ANALYST = ['admin_super', 'admin_finance', 'admin_analyst'] as const;
+const FINANCE = ['admin_super', 'accountant', 'accounts_manager'] as const;
+const FINANCE_OR_ANALYST = ['admin_super', 'accountant', 'accounts_manager', 'admin_analyst'] as const;
 const PARTNER_MANAGER = ['admin_super', 'admin_partner_manager'] as const;
 const COMPLIANCE = ['admin_super', 'admin_compliance'] as const;
 
@@ -55,6 +57,7 @@ export class AdminController {
     private readonly listingsService: ListingsService,
     private readonly paymentsService: PaymentsService,
     private readonly auditLog: AuditLogService,
+    private readonly invoicesService: InvoicesService,
   ) {}
 
   @Get('summary')
@@ -231,6 +234,24 @@ export class AdminController {
   @Get('reports/revenue')
   revenueReport() {
     return this.paymentsService.revenueSummary();
+  }
+
+  @Roles(...FINANCE)
+  @Get('invoices')
+  listInvoices(@Query('status') status?: string) {
+    return this.invoicesService.listAll(status);
+  }
+
+  @Roles(...FINANCE)
+  @Get('invoices/:id')
+  getInvoice(@Param('id') id: string) {
+    return this.invoicesService.findOne(id);
+  }
+
+  @Roles(...FINANCE)
+  @Get('invoices/:id/pdf')
+  getInvoicePdf(@Param('id') id: string): Promise<StreamableFile> {
+    return this.invoicesService.renderPdf(id);
   }
 
   @Roles(...COMPLIANCE)

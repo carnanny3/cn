@@ -7,6 +7,7 @@ import { ConciergeModule } from '../concierge/concierge.module';
 import { ListingsModule } from '../listings/listings.module';
 import { PaymentsModule } from '../payments/payments.module';
 import { AuditLogModule } from '../audit-log/audit-log.module';
+import { InvoicesModule } from '../invoices/invoices.module';
 import { AdminService } from './admin.service';
 import { AdminController } from './admin.controller';
 
@@ -20,6 +21,7 @@ import { AdminController } from './admin.controller';
     ListingsModule,
     PaymentsModule,
     AuditLogModule,
+    InvoicesModule,
   ],
   controllers: [AdminController],
   providers: [AdminService],

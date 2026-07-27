@@ -18,7 +18,8 @@ const NAV_ITEMS: { to: string; label: string; end?: boolean; roles?: string[] }[
   { to: '/listings', label: 'Buy-a-Car Listings', roles: ['admin_super', 'admin_ops'] },
   { to: '/cms', label: 'CMS & FAQs', roles: ['admin_super', 'admin_content'] },
   { to: '/promotions', label: 'Promotions', roles: ['admin_super', 'admin_content'] },
-  { to: '/revenue', label: 'Payments & Revenue', roles: ['admin_super', 'admin_finance', 'admin_analyst'] },
+  { to: '/revenue', label: 'Payments & Revenue', roles: ['admin_super', 'accountant', 'accounts_manager', 'admin_analyst'] },
+  { to: '/invoices', label: 'Invoices', roles: ['admin_super', 'accountant', 'accounts_manager'] },
   { to: '/audit-log', label: 'Audit Log', roles: ['admin_super', 'admin_compliance'] },
 ];
 

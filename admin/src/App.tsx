@@ -16,6 +16,7 @@ import { ListingsPage } from './pages/ListingsPage';
 import { CmsPage } from './pages/CmsPage';
 import { PromotionsPage } from './pages/PromotionsPage';
 import { RevenuePage } from './pages/RevenuePage';
+import { InvoicesPage } from './pages/InvoicesPage';
 import { AuditLogPage } from './pages/AuditLogPage';
 import { useAuth } from './state/AuthContext';
 
@@ -44,6 +45,7 @@ export function App() {
         <Route path="/cms" element={<CmsPage />} />
         <Route path="/promotions" element={<PromotionsPage />} />
         <Route path="/revenue" element={<RevenuePage />} />
+        <Route path="/invoices" element={<InvoicesPage />} />
         <Route path="/audit-log" element={<AuditLogPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>

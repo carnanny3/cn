@@ -1,6 +1,7 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import Stripe from 'stripe';
 import { PrismaService } from '../prisma/prisma.service';
+import { InvoicesService } from '../invoices/invoices.service';
 import { CreatePaymentIntentDto } from './dto/create-payment-intent.dto';
 
 const VAT_RATE = 0.05;
@@ -18,7 +19,10 @@ export class PaymentsService {
   private readonly logger = new Logger(PaymentsService.name);
   private readonly stripe: Stripe | null;
 
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly invoicesService: InvoicesService,
+  ) {
     const key = process.env.STRIPE_SECRET_KEY;
     this.stripe = key ? new Stripe(key) : null;
   }
@@ -63,6 +67,10 @@ export class PaymentsService {
       },
     });
 
+    if (payment.status === 'captured') {
+      await this.invoicesService.generateForPayment(payment.id);
+    }
+
     return { ...payment, clientSecret };
   }
 
@@ -74,7 +82,9 @@ export class PaymentsService {
 
   /** Manual confirmation path — only meaningful for pay_at_service (partner confirms cash collected) or simulated (no Stripe key) payments. Real Stripe card payments are confirmed via the webhook instead. */
   async confirm(id: string) {
-    return this.prisma.payment.update({ where: { id }, data: { status: 'captured' } });
+    const payment = await this.prisma.payment.update({ where: { id }, data: { status: 'captured' } });
+    await this.invoicesService.generateForPayment(payment.id);
+    return payment;
   }
 
   async refund(id: string) {
@@ -82,7 +92,9 @@ export class PaymentsService {
     if (this.stripe && payment.providerReference) {
       await this.stripe.refunds.create({ payment_intent: payment.providerReference });
     }
-    return this.prisma.payment.update({ where: { id }, data: { status: 'refunded' } });
+    const refunded = await this.prisma.payment.update({ where: { id }, data: { status: 'refunded' } });
+    await this.invoicesService.markRefunded(refunded.id);
+    return refunded;
   }
 
   listAll(status?: string) {
@@ -124,6 +136,8 @@ export class PaymentsService {
         where: { providerReference: intent.id },
         data: { status: 'captured' },
       });
+      const payment = await this.prisma.payment.findFirst({ where: { providerReference: intent.id } });
+      if (payment) await this.invoicesService.generateForPayment(payment.id);
     } else if (event.type === 'payment_intent.payment_failed') {
       const intent = event.data.object as Stripe.PaymentIntent;
       await this.prisma.payment.updateMany({
