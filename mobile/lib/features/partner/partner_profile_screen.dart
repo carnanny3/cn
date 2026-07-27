@@ -6,6 +6,7 @@ import '../../core/widgets/glass_card.dart';
 import '../../core/widgets/gradient_background.dart';
 import '../../core/widgets/gradient_button.dart';
 import '../../core/widgets/status_badge.dart';
+import '../../l10n/generated/app_localizations.dart';
 import 'partner_model.dart';
 import 'partner_repository.dart';
 
@@ -56,6 +57,7 @@ class _PartnerProfileScreenState extends State<PartnerProfileScreen> {
   }
 
   Future<void> _save() async {
+    final l10n = AppLocalizations.of(context)!;
     setState(() => _saving = true);
     try {
       await context.read<PartnerRepository>().updateMyProfile(
@@ -64,11 +66,11 @@ class _PartnerProfileScreenState extends State<PartnerProfileScreen> {
             contactEmail: _emailController.text.trim(),
           );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Business profile updated.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.partnerProfileUpdated)));
       }
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not save changes. Try again.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.partnerProfileSaveError)));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -89,8 +91,9 @@ class _PartnerProfileScreenState extends State<PartnerProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('Business Profile')),
+      appBar: AppBar(title: Text(l10n.partnerProfileTitle)),
       body: GradientBackground(
         child: _loading
             ? const Center(child: CircularProgressIndicator())
@@ -105,29 +108,29 @@ class _PartnerProfileScreenState extends State<PartnerProfileScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Text('Business details', style: Theme.of(context).textTheme.titleLarge),
+                          Text(l10n.partnerProfileBusinessDetails, style: Theme.of(context).textTheme.titleLarge),
                           const SizedBox(height: 16),
                           TextField(
                             controller: _businessNameController,
                             style: const TextStyle(color: AppColors.textPrimary),
-                            decoration: const InputDecoration(labelText: 'Business name'),
+                            decoration: InputDecoration(labelText: l10n.partnerProfileBusinessName),
                           ),
                           const SizedBox(height: 14),
                           TextField(
                             controller: _phoneController,
                             keyboardType: TextInputType.phone,
                             style: const TextStyle(color: AppColors.textPrimary),
-                            decoration: const InputDecoration(labelText: 'Contact phone'),
+                            decoration: InputDecoration(labelText: l10n.partnerProfileContactPhone),
                           ),
                           const SizedBox(height: 14),
                           TextField(
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
                             style: const TextStyle(color: AppColors.textPrimary),
-                            decoration: const InputDecoration(labelText: 'Contact email'),
+                            decoration: InputDecoration(labelText: l10n.partnerProfileContactEmail),
                           ),
                           const SizedBox(height: 18),
-                          GradientButton(label: 'Save changes', loading: _saving, onPressed: _saving ? null : _save),
+                          GradientButton(label: l10n.partnerProfileSaveChanges, loading: _saving, onPressed: _saving ? null : _save),
                         ],
                       ),
                     ),
@@ -135,7 +138,7 @@ class _PartnerProfileScreenState extends State<PartnerProfileScreen> {
                     OutlinedButton.icon(
                       onPressed: () => context.read<AuthState>().logout(),
                       icon: const Icon(Icons.logout, color: AppColors.statusRed),
-                      label: const Text('Log out', style: TextStyle(color: AppColors.statusRed)),
+                      label: Text(l10n.partnerProfileLogOut, style: const TextStyle(color: AppColors.statusRed)),
                       style: OutlinedButton.styleFrom(
                         minimumSize: const Size.fromHeight(52),
                         side: const BorderSide(color: AppColors.glassBorder),

@@ -7,6 +7,7 @@ import '../../core/widgets/glass_card.dart';
 import '../../core/widgets/gradient_background.dart';
 import '../../core/widgets/gradient_button.dart';
 import '../../core/widgets/status_badge.dart';
+import '../../l10n/generated/app_localizations.dart';
 import 'roadside_model.dart';
 import 'roadside_repository.dart';
 
@@ -62,37 +63,38 @@ class _RoadsideTrackingScreenState extends State<RoadsideTrackingScreen> {
   }
 
   Future<void> _cancel() async {
+    final l10n = AppLocalizations.of(context)!;
     setState(() => _cancelling = true);
     try {
       await context.read<RoadsideRepository>().cancel(widget.requestId);
       if (mounted) Navigator.of(context).pop();
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not cancel. Try again.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.roadsideTrackingCancelFailed)));
       }
     } finally {
       if (mounted) setState(() => _cancelling = false);
     }
   }
 
-  String _statusMessage(String status) {
+  String _statusMessage(AppLocalizations l10n, String status) {
     switch (status) {
       case 'requested':
-        return 'Finding you a provider...';
+        return l10n.roadsideTrackingStatusRequested;
       case 'matched':
-        return 'Provider matched';
+        return l10n.roadsideTrackingStatusMatched;
       case 'accepted':
-        return 'Provider is preparing to head your way';
+        return l10n.roadsideTrackingStatusAccepted;
       case 'en_route':
-        return 'Provider is on the way';
+        return l10n.roadsideTrackingStatusEnRoute;
       case 'arrived':
-        return 'Provider has arrived';
+        return l10n.roadsideTrackingStatusArrived;
       case 'in_service':
-        return 'Service in progress';
+        return l10n.roadsideTrackingStatusInService;
       case 'completed':
-        return 'Completed';
+        return l10n.roadsideTrackingStatusCompleted;
       case 'cancelled':
-        return 'Cancelled';
+        return l10n.roadsideTrackingStatusCancelled;
       default:
         return status;
     }
@@ -100,6 +102,7 @@ class _RoadsideTrackingScreenState extends State<RoadsideTrackingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final request = _request;
     final isActive = request != null && request.status != 'completed' && request.status != 'cancelled';
 
@@ -117,7 +120,7 @@ class _RoadsideTrackingScreenState extends State<RoadsideTrackingScreen> {
                         children: [
                           Expanded(
                             child: Text(
-                              RoadsideRepository.serviceTypes[request.serviceType] ?? request.serviceType,
+                              RoadsideRepository.serviceTypeLabel(l10n, request.serviceType),
                               style: Theme.of(context).textTheme.headlineMedium,
                             ),
                           ),
@@ -141,15 +144,15 @@ class _RoadsideTrackingScreenState extends State<RoadsideTrackingScreen> {
                                   color: AppColors.goldLight,
                                 ),
                                 const SizedBox(height: 16),
-                                Text(_statusMessage(request.status), style: Theme.of(context).textTheme.titleLarge, textAlign: TextAlign.center),
+                                Text(_statusMessage(l10n, request.status), style: Theme.of(context).textTheme.titleLarge, textAlign: TextAlign.center),
                                 if (request.providerName != null) ...[
                                   const SizedBox(height: 8),
                                   Text(request.providerName!, style: Theme.of(context).textTheme.bodyLarge),
                                 ],
                                 if (request.etaMinutes != null && isActive) ...[
                                   const SizedBox(height: 16),
-                                  Text('${request.etaMinutes} min', style: Theme.of(context).textTheme.displayLarge),
-                                  Text('estimated arrival', style: Theme.of(context).textTheme.bodySmall),
+                                  Text(l10n.roadsideTrackingEtaMinutes(request.etaMinutes!), style: Theme.of(context).textTheme.displayLarge),
+                                  Text(l10n.roadsideTrackingEstimatedArrival, style: Theme.of(context).textTheme.bodySmall),
                                 ],
                               ],
                             ),
@@ -159,12 +162,12 @@ class _RoadsideTrackingScreenState extends State<RoadsideTrackingScreen> {
                       const SizedBox(height: 20),
                       if (isActive) ...[
                         if (request.providerPhone != null) ...[
-                          GradientButton(label: 'Call Provider', icon: Icons.call, onPressed: _callProvider),
+                          GradientButton(label: l10n.roadsideTrackingCallProvider, icon: Icons.call, onPressed: _callProvider),
                           const SizedBox(height: 12),
                         ],
                         TextButton(
                           onPressed: _cancelling ? null : _cancel,
-                          child: Text(_cancelling ? 'Cancelling...' : 'Cancel Request', style: const TextStyle(color: AppColors.statusRed)),
+                          child: Text(_cancelling ? l10n.roadsideTrackingCancelling : l10n.roadsideTrackingCancelRequest, style: const TextStyle(color: AppColors.statusRed)),
                         ),
                       ] else
                         OutlinedButton(
@@ -174,7 +177,7 @@ class _RoadsideTrackingScreenState extends State<RoadsideTrackingScreen> {
                             side: const BorderSide(color: AppColors.glassBorder),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
                           ),
-                          child: const Text('Done'),
+                          child: Text(l10n.roadsideTrackingDone),
                         ),
                     ],
                   ),

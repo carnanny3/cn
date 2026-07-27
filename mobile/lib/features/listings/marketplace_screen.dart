@@ -7,6 +7,7 @@ import '../../core/widgets/glass_card.dart';
 import '../../core/widgets/gradient_background.dart';
 import '../../core/widgets/gradient_button.dart';
 import '../../core/widgets/status_badge.dart';
+import '../../l10n/generated/app_localizations.dart';
 import 'listing_model.dart';
 import 'listing_repository.dart';
 
@@ -58,22 +59,23 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> with SingleTicker
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        title: const Text('Buy a Car'),
+        title: Text(l10n.marketplaceTitle),
         actions: [
           IconButton(
             icon: Icon(_compareMode ? Icons.close : Icons.compare_arrows, color: AppColors.goldLight),
-            tooltip: _compareMode ? 'Cancel compare' : 'Compare listings',
+            tooltip: _compareMode ? l10n.marketplaceCancelCompare : l10n.marketplaceCompareListings,
             onPressed: () => setState(() {
               _compareMode = !_compareMode;
               if (!_compareMode) _compareSelection.clear();
             }),
           ),
         ],
-        bottom: TabBar(controller: _tabController, tabs: const [Tab(text: 'Browse'), Tab(text: 'Sell'), Tab(text: 'My Listings')]),
+        bottom: TabBar(controller: _tabController, tabs: [Tab(text: l10n.marketplaceBrowseTab), Tab(text: l10n.marketplaceSellTab), Tab(text: l10n.marketplaceMyListingsTab)]),
       ),
       body: GradientBackground(
         child: SafeArea(
@@ -84,14 +86,14 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> with SingleTicker
           ? FloatingActionButton.extended(
               backgroundColor: AppColors.goldLight,
               icon: const Icon(Icons.compare_arrows, color: Colors.black),
-              label: Text('Compare (${_compareSelection.length})', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w700)),
+              label: Text(l10n.marketplaceCompareCount(_compareSelection.length), style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w700)),
               onPressed: () => context.push('/listings/compare?ids=${_compareSelection.join(',')}'),
             )
           : null,
     );
   }
 
-  Widget _listingCard(VehicleListingItem listing) {
+  Widget _listingCard(AppLocalizations l10n, VehicleListingItem listing) {
     final selected = _compareSelection.contains(listing.id);
     return GlassCard(
       onTap: _compareMode ? () => _toggleCompareSelection(listing.id) : () => context.push('/listings/${listing.id}'),
@@ -112,8 +114,8 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> with SingleTicker
                   ],
                 ),
                 const SizedBox(height: 6),
-                Text('AED ${listing.askingPrice.toStringAsFixed(0)}', style: const TextStyle(color: AppColors.goldLight, fontWeight: FontWeight.w700)),
-                if (listing.mileageKm != null) Text('${listing.mileageKm} km', style: Theme.of(context).textTheme.bodySmall),
+                Text(l10n.marketplacePriceAed(listing.askingPrice.toStringAsFixed(0)), style: const TextStyle(color: AppColors.goldLight, fontWeight: FontWeight.w700)),
+                if (listing.mileageKm != null) Text(l10n.marketplaceMileageKm(listing.mileageKm!.toString()), style: Theme.of(context).textTheme.bodySmall),
               ],
             ),
           ),
@@ -126,21 +128,22 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> with SingleTicker
     return FutureBuilder<List<VehicleListingItem>>(
       future: _browseFuture,
       builder: (context, snapshot) {
+        final l10n = AppLocalizations.of(context)!;
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
           return EmptyState(
             icon: Icons.wifi_off,
-            title: 'Could not load listings',
-            message: 'Check your connection and try again.',
-            actionLabel: 'Retry',
+            title: l10n.marketplaceCouldNotLoadListings,
+            message: l10n.marketplaceCheckConnectionRetry,
+            actionLabel: l10n.commonRetry,
             onAction: () => setState(_reloadBrowse),
           );
         }
         final listings = snapshot.data!;
         if (listings.isEmpty) {
-          return const EmptyState(icon: Icons.directions_car_outlined, title: 'No listings yet', message: 'Check back soon for certified and private listings.');
+          return EmptyState(icon: Icons.directions_car_outlined, title: l10n.marketplaceNoListingsYet, message: l10n.marketplaceNoListingsMessage);
         }
         return RefreshIndicator(
           onRefresh: () async => setState(_reloadBrowse),
@@ -148,7 +151,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> with SingleTicker
             padding: const EdgeInsets.fromLTRB(16, 96, 16, 100),
             itemCount: listings.length,
             separatorBuilder: (_, __) => const SizedBox(height: 12),
-            itemBuilder: (context, index) => _listingCard(listings[index]),
+            itemBuilder: (context, index) => _listingCard(l10n, listings[index]),
           ),
         );
       },
@@ -159,21 +162,22 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> with SingleTicker
     return FutureBuilder<List<VehicleListingItem>>(
       future: _mineFuture,
       builder: (context, snapshot) {
+        final l10n = AppLocalizations.of(context)!;
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
           return EmptyState(
             icon: Icons.wifi_off,
-            title: 'Could not load your listings',
-            message: 'Check your connection and try again.',
-            actionLabel: 'Retry',
+            title: l10n.marketplaceCouldNotLoadYourListings,
+            message: l10n.marketplaceCheckConnectionRetry,
+            actionLabel: l10n.commonRetry,
             onAction: () => setState(_reloadMine),
           );
         }
         final listings = snapshot.data!;
         if (listings.isEmpty) {
-          return const EmptyState(icon: Icons.sell_outlined, title: 'You have no listings', message: 'List your car for sale from the Sell tab.');
+          return EmptyState(icon: Icons.sell_outlined, title: l10n.marketplaceNoYourListings, message: l10n.marketplaceListFromSellTab);
         }
         return RefreshIndicator(
           onRefresh: () async => setState(_reloadMine),
@@ -191,7 +195,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> with SingleTicker
                       children: [
                         Text(listings[index].title, style: Theme.of(context).textTheme.titleLarge),
                         const SizedBox(height: 4),
-                        Text('AED ${listings[index].askingPrice.toStringAsFixed(0)}', style: Theme.of(context).textTheme.bodyMedium),
+                        Text(l10n.marketplacePriceAed(listings[index].askingPrice.toStringAsFixed(0)), style: Theme.of(context).textTheme.bodyMedium),
                       ],
                     ),
                   ),
@@ -234,12 +238,13 @@ class _SellTabState extends State<_SellTab> {
   }
 
   Future<void> _submit() async {
+    final l10n = AppLocalizations.of(context)!;
     final make = _makeController.text.trim();
     final model = _modelController.text.trim();
     final year = int.tryParse(_yearController.text.trim());
     final price = double.tryParse(_priceController.text.trim());
     if (make.isEmpty || model.isEmpty || year == null || price == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Fill in make, model, year, and asking price.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.marketplaceFillRequiredFields)));
       return;
     }
     setState(() => _submitting = true);
@@ -252,7 +257,7 @@ class _SellTabState extends State<_SellTab> {
             askingPrice: price,
           );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Your listing is live — check My Listings.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.marketplaceListingLive)));
         _makeController.clear();
         _modelController.clear();
         _yearController.clear();
@@ -262,7 +267,7 @@ class _SellTabState extends State<_SellTab> {
       }
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not create the listing. Try again.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.marketplaceCreateListingFailed)));
       }
     } finally {
       if (mounted) setState(() => _submitting = false);
@@ -271,6 +276,7 @@ class _SellTabState extends State<_SellTab> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     const textStyle = TextStyle(color: AppColors.textPrimary);
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 96, 20, 40),
@@ -279,19 +285,19 @@ class _SellTabState extends State<_SellTab> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text('List your car for sale', style: Theme.of(context).textTheme.titleLarge),
+              Text(l10n.marketplaceSellCardTitle, style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 14),
-              TextField(controller: _makeController, style: textStyle, decoration: const InputDecoration(labelText: 'Make')),
+              TextField(controller: _makeController, style: textStyle, decoration: InputDecoration(labelText: l10n.marketplaceMakeLabel)),
               const SizedBox(height: 12),
-              TextField(controller: _modelController, style: textStyle, decoration: const InputDecoration(labelText: 'Model')),
+              TextField(controller: _modelController, style: textStyle, decoration: InputDecoration(labelText: l10n.marketplaceModelLabel)),
               const SizedBox(height: 12),
-              TextField(controller: _yearController, style: textStyle, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Year')),
+              TextField(controller: _yearController, style: textStyle, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: l10n.marketplaceYearLabel)),
               const SizedBox(height: 12),
-              TextField(controller: _mileageController, style: textStyle, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Mileage (km, optional)')),
+              TextField(controller: _mileageController, style: textStyle, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: l10n.marketplaceMileageLabel)),
               const SizedBox(height: 12),
-              TextField(controller: _priceController, style: textStyle, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Asking price (AED)')),
+              TextField(controller: _priceController, style: textStyle, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: l10n.marketplacePriceLabel)),
               const SizedBox(height: 20),
-              GradientButton(label: 'Publish Listing', loading: _submitting, onPressed: _submitting ? null : _submit),
+              GradientButton(label: l10n.marketplacePublishListing, loading: _submitting, onPressed: _submitting ? null : _submit),
             ],
           ),
         ),

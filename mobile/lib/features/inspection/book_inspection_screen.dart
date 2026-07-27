@@ -5,6 +5,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/widgets/glass_card.dart';
 import '../../core/widgets/gradient_background.dart';
 import '../../core/widgets/gradient_button.dart';
+import '../../l10n/generated/app_localizations.dart';
 import 'inspection_repository.dart';
 
 class BookInspectionScreen extends StatefulWidget {
@@ -52,8 +53,9 @@ class _BookInspectionScreenState extends State<BookInspectionScreen> {
       }
     } catch (_) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not book the inspection. Check the backend connection and try again.')),
+          SnackBar(content: Text(l10n.inspectionBookError)),
         );
       }
     } finally {
@@ -63,9 +65,10 @@ class _BookInspectionScreenState extends State<BookInspectionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     const textStyle = TextStyle(color: AppColors.textPrimary);
     return Scaffold(
-      appBar: AppBar(title: const Text('Book Inspection')),
+      appBar: AppBar(title: Text(l10n.inspectionBookTitle)),
       body: GradientBackground(
         child: SafeArea(
           child: ListView(
@@ -77,11 +80,11 @@ class _BookInspectionScreenState extends State<BookInspectionScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '300+ checkpoints covering engine, transmission, chassis, electrical, and more.',
+                      l10n.inspectionBookCheckpointsDescription,
                       style: Theme.of(context).textTheme.bodyLarge,
                     ),
                     const SizedBox(height: 10),
-                    const Text('AED 349 (incl. VAT)', style: TextStyle(color: AppColors.goldLight, fontWeight: FontWeight.w800, fontSize: 20)),
+                    Text(l10n.inspectionBookPriceLabel, style: const TextStyle(color: AppColors.goldLight, fontWeight: FontWeight.w800, fontSize: 20)),
                   ],
                 ),
               ),
@@ -93,18 +96,18 @@ class _BookInspectionScreenState extends State<BookInspectionScreen> {
                     TextField(
                       controller: _makeModelYearController,
                       style: textStyle,
-                      decoration: const InputDecoration(labelText: 'Make / Model / Year (e.g. 2019 Toyota Camry)'),
+                      decoration: InputDecoration(labelText: l10n.inspectionBookMakeModelYearLabel),
                     ),
                     const SizedBox(height: 14),
                     TextField(
                       controller: _plateController,
                       style: textStyle,
-                      decoration: const InputDecoration(labelText: 'Plate number'),
+                      decoration: InputDecoration(labelText: l10n.inspectionBookPlateLabel),
                     ),
                     const SizedBox(height: 14),
                     ListTile(
                       contentPadding: EdgeInsets.zero,
-                      title: Text('Preferred date', style: Theme.of(context).textTheme.bodyLarge),
+                      title: Text(l10n.inspectionBookPreferredDate, style: Theme.of(context).textTheme.bodyLarge),
                       subtitle: Text(
                         '${_scheduledAt.year}-${_scheduledAt.month.toString().padLeft(2, '0')}-${_scheduledAt.day.toString().padLeft(2, '0')}',
                         style: Theme.of(context).textTheme.bodyMedium,
@@ -113,7 +116,7 @@ class _BookInspectionScreenState extends State<BookInspectionScreen> {
                       onTap: _pickDate,
                     ),
                     const SizedBox(height: 20),
-                    GradientButton(label: 'Book Inspection', loading: _submitting, onPressed: _submitting ? null : _submit),
+                    GradientButton(label: l10n.inspectionBookSubmit, loading: _submitting, onPressed: _submitting ? null : _submit),
                   ],
                 ),
               ),

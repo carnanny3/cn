@@ -4,6 +4,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/glass_card.dart';
 import '../../core/widgets/gradient_background.dart';
+import '../../l10n/generated/app_localizations.dart';
 import 'listing_model.dart';
 import 'listing_repository.dart';
 
@@ -40,8 +41,9 @@ class _ListingCompareScreenState extends State<ListingCompareScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('Compare Listings')),
+      appBar: AppBar(title: Text(l10n.listingCompareTitle)),
       body: GradientBackground(
         child: SafeArea(
           child: FutureBuilder<List<VehicleListingItem>>(
@@ -51,7 +53,11 @@ class _ListingCompareScreenState extends State<ListingCompareScreen> {
                 return const Center(child: CircularProgressIndicator());
               }
               if (snapshot.hasError || (snapshot.data?.isEmpty ?? true)) {
-                return const EmptyState(icon: Icons.wifi_off, title: 'Could not load listings', message: 'Try again from the browse screen.');
+                return EmptyState(
+                  icon: Icons.wifi_off,
+                  title: l10n.listingCompareCouldNotLoad,
+                  message: l10n.listingCompareTryAgainFromBrowse,
+                );
               }
               final listings = snapshot.data!;
               return ListView(
@@ -70,11 +76,12 @@ class _ListingCompareScreenState extends State<ListingCompareScreen> {
                           ],
                         ),
                         const Divider(color: AppColors.textSecondary),
-                        _row('Price', listings, (l) => 'AED ${l.askingPrice.toStringAsFixed(0)}'),
-                        _row('Year', listings, (l) => '${l.year}'),
-                        _row('Mileage', listings, (l) => l.mileageKm != null ? '${l.mileageKm} km' : '—'),
-                        _row('Seller', listings, (l) => l.sellerType),
-                        _row('Inspected', listings, (l) => l.inspectionId != null ? 'Yes' : 'No'),
+                        _row(l10n.listingComparePrice, listings, (l) => 'AED ${l.askingPrice.toStringAsFixed(0)}'),
+                        _row(l10n.listingCompareYear, listings, (l) => '${l.year}'),
+                        _row(l10n.listingCompareMileage, listings, (l) => l.mileageKm != null ? '${l.mileageKm} km' : l10n.listingCompareNotAvailable),
+                        _row(l10n.listingCompareSeller, listings, (l) => l.sellerType),
+                        _row(l10n.listingCompareInspected, listings,
+                            (l) => l.inspectionId != null ? l10n.listingCompareYes : l10n.listingCompareNo),
                       ],
                     ),
                   ),

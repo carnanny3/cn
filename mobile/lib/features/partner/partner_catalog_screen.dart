@@ -38,7 +38,8 @@ class _PartnerCatalogScreenState extends State<PartnerCatalogScreen> {
       if (mounted) setState(_reload);
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not update this service.')));
+        final l10n = AppLocalizations.of(context)!;
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.partnerCatalogUpdateFailed)));
       }
     } finally {
       if (mounted) setState(() => _busyServiceId = null);
@@ -72,7 +73,7 @@ class _PartnerCatalogScreenState extends State<PartnerCatalogScreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Add a service', style: Theme.of(sheetContext).textTheme.titleLarge),
+                    Text(l10n.partnerCatalogAddService, style: Theme.of(sheetContext).textTheme.titleLarge),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
                       initialValue: category,
@@ -88,18 +89,18 @@ class _PartnerCatalogScreenState extends State<PartnerCatalogScreen> {
                       controller: priceController,
                       keyboardType: TextInputType.number,
                       style: const TextStyle(color: AppColors.textPrimary),
-                      decoration: const InputDecoration(labelText: 'Price (AED)'),
+                      decoration: InputDecoration(labelText: l10n.partnerCatalogPriceLabel),
                     ),
                     const SizedBox(height: 12),
                     TextField(
                       controller: durationController,
                       keyboardType: TextInputType.number,
                       style: const TextStyle(color: AppColors.textPrimary),
-                      decoration: const InputDecoration(labelText: 'Duration estimate (minutes, optional)'),
+                      decoration: InputDecoration(labelText: l10n.partnerCatalogDurationLabel),
                     ),
                     const SizedBox(height: 20),
                     GradientButton(
-                      label: 'Add Service',
+                      label: l10n.partnerCatalogAddServiceButton,
                       loading: submitting,
                       onPressed: () async {
                         final price = double.tryParse(priceController.text.trim());
@@ -131,11 +132,12 @@ class _PartnerCatalogScreenState extends State<PartnerCatalogScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        title: const Text('My Catalog'),
+        title: Text(l10n.partnerCatalogTitle),
         actions: [IconButton(icon: const Icon(Icons.add), onPressed: _showAddServiceSheet)],
       ),
       body: GradientBackground(
@@ -149,9 +151,9 @@ class _PartnerCatalogScreenState extends State<PartnerCatalogScreen> {
               if (snapshot.hasError) {
                 return EmptyState(
                   icon: Icons.wifi_off,
-                  title: 'Could not load your catalog',
-                  message: 'Check your connection and try again.',
-                  actionLabel: 'Retry',
+                  title: l10n.partnerCatalogCouldNotLoad,
+                  message: l10n.partnerCatalogCheckConnection,
+                  actionLabel: l10n.commonRetry,
                   onAction: () => setState(_reload),
                 );
               }
@@ -159,9 +161,9 @@ class _PartnerCatalogScreenState extends State<PartnerCatalogScreen> {
               if (services.isEmpty) {
                 return EmptyState(
                   icon: Icons.build_outlined,
-                  title: 'No services listed yet',
-                  message: 'Add the services you offer so customers can find and book you.',
-                  actionLabel: 'Add Service',
+                  title: l10n.partnerCatalogNoServicesYet,
+                  message: l10n.partnerCatalogNoServicesMessage,
+                  actionLabel: l10n.partnerCatalogAddServiceButton,
                   onAction: _showAddServiceSheet,
                 );
               }
@@ -171,7 +173,7 @@ class _PartnerCatalogScreenState extends State<PartnerCatalogScreen> {
                 separatorBuilder: (_, __) => const SizedBox(height: 12),
                 itemBuilder: (context, index) {
                   final service = services[index];
-                  final label = ServicesRepository.categoryLabel(AppLocalizations.of(context)!, service.serviceCategory);
+                  final label = ServicesRepository.categoryLabel(l10n, service.serviceCategory);
                   final busy = _busyServiceId == service.id;
                   return GlassCard(
                     child: Row(

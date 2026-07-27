@@ -6,6 +6,7 @@ import '../../core/widgets/glass_card.dart';
 import '../../core/widgets/gradient_background.dart';
 import '../../core/widgets/gradient_button.dart';
 import '../../core/widgets/status_badge.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../garage/garage_repository.dart';
 import '../garage/vehicle_model.dart';
 import 'warranty_model.dart';
@@ -43,11 +44,12 @@ class _WarrantyHomeScreenState extends State<WarrantyHomeScreen> with SingleTick
   }
 
   Future<void> _buyPlan(WarrantyPlan plan) async {
+    final l10n = AppLocalizations.of(context)!;
     final vehicles = await context.read<GarageRepository>().fetchVehicles();
     if (!mounted) return;
     if (vehicles.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Add a vehicle to My Garage before buying a warranty.')),
+        SnackBar(content: Text(l10n.warrantyAddVehicleFirst)),
       );
       return;
     }
@@ -61,7 +63,7 @@ class _WarrantyHomeScreenState extends State<WarrantyHomeScreen> with SingleTick
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Select a vehicle', style: Theme.of(sheetContext).textTheme.titleLarge),
+            Text(l10n.warrantySelectVehicle, style: Theme.of(sheetContext).textTheme.titleLarge),
             const SizedBox(height: 12),
             ...vehicles.map((v) => ListTile(
                   title: Text(v.label, style: const TextStyle(color: AppColors.textPrimary)),
@@ -78,12 +80,13 @@ class _WarrantyHomeScreenState extends State<WarrantyHomeScreen> with SingleTick
     try {
       await context.read<WarrantyRepository>().purchasePolicy(planId: plan.id, vehicleId: vehicle.id);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${plan.name} purchased for ${vehicle.label}.')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('${plan.name} ${l10n.warrantyPurchasedFor} ${vehicle.label}.')));
         setState(_reload);
       }
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not complete the purchase. Try again.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.warrantyPurchaseFailed)));
       }
     } finally {
       if (mounted) setState(() => _purchasing = false);
@@ -91,6 +94,7 @@ class _WarrantyHomeScreenState extends State<WarrantyHomeScreen> with SingleTick
   }
 
   Future<void> _fileClaim(WarrantyPolicy policy) async {
+    final l10n = AppLocalizations.of(context)!;
     final controller = TextEditingController();
     final description = await showModalBottomSheet<String>(
       context: context,
@@ -104,17 +108,17 @@ class _WarrantyHomeScreenState extends State<WarrantyHomeScreen> with SingleTick
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text('File a Claim', style: Theme.of(sheetContext).textTheme.titleLarge),
+              Text(l10n.warrantyFileClaim, style: Theme.of(sheetContext).textTheme.titleLarge),
               const SizedBox(height: 12),
               TextField(
                 controller: controller,
                 maxLines: 4,
                 style: const TextStyle(color: AppColors.textPrimary),
-                decoration: const InputDecoration(hintText: 'Describe the issue...'),
+                decoration: InputDecoration(hintText: l10n.warrantyDescribeIssueHint),
               ),
               const SizedBox(height: 16),
               GradientButton(
-                label: 'Submit Claim',
+                label: l10n.warrantySubmitClaim,
                 onPressed: () => Navigator.of(sheetContext).pop(controller.text.trim()),
               ),
               const SizedBox(height: 16),
@@ -128,12 +132,12 @@ class _WarrantyHomeScreenState extends State<WarrantyHomeScreen> with SingleTick
     try {
       await context.read<WarrantyRepository>().submitClaim(policyId: policy.id, description: description);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Claim submitted.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.warrantyClaimSubmitted)));
         setState(_reload);
       }
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not submit the claim. Try again.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.warrantyClaimSubmitFailed)));
       }
     }
   }
@@ -146,12 +150,16 @@ class _WarrantyHomeScreenState extends State<WarrantyHomeScreen> with SingleTick
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        title: const Text('Warranty'),
-        bottom: TabBar(controller: _tabController, tabs: const [Tab(text: 'Plans'), Tab(text: 'My Policies')]),
+        title: Text(l10n.warrantyTitle),
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: [Tab(text: l10n.warrantyPlansTab), Tab(text: l10n.warrantyMyPoliciesTab)],
+        ),
       ),
       body: GradientBackground(
         child: SafeArea(
@@ -168,21 +176,22 @@ class _WarrantyHomeScreenState extends State<WarrantyHomeScreen> with SingleTick
     return FutureBuilder<List<WarrantyPlan>>(
       future: _plansFuture,
       builder: (context, snapshot) {
+        final l10n = AppLocalizations.of(context)!;
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
           return EmptyState(
             icon: Icons.wifi_off,
-            title: 'Could not load warranty plans',
-            message: 'Check your connection and try again.',
-            actionLabel: 'Retry',
+            title: l10n.warrantyCouldNotLoadPlans,
+            message: l10n.warrantyCheckConnection,
+            actionLabel: l10n.commonRetry,
             onAction: () => setState(_reload),
           );
         }
         final plans = snapshot.data!;
         if (plans.isEmpty) {
-          return const EmptyState(icon: Icons.shield_outlined, title: 'No plans available', message: 'Check back soon for warranty plans.');
+          return EmptyState(icon: Icons.shield_outlined, title: l10n.warrantyNoPlansAvailable, message: l10n.warrantyCheckBackSoonPlans);
         }
         return ListView.separated(
           padding: const EdgeInsets.all(16),
@@ -206,7 +215,7 @@ class _WarrantyHomeScreenState extends State<WarrantyHomeScreen> with SingleTick
                       const Spacer(),
                       TextButton(
                         onPressed: _purchasing ? null : () => _buyPlan(plan),
-                        child: const Text('Buy'),
+                        child: Text(l10n.warrantyBuy),
                       ),
                     ],
                   ),
@@ -223,21 +232,22 @@ class _WarrantyHomeScreenState extends State<WarrantyHomeScreen> with SingleTick
     return FutureBuilder<List<WarrantyPolicy>>(
       future: _policiesFuture,
       builder: (context, snapshot) {
+        final l10n = AppLocalizations.of(context)!;
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
           return EmptyState(
             icon: Icons.wifi_off,
-            title: 'Could not load your policies',
-            message: 'Check your connection and try again.',
-            actionLabel: 'Retry',
+            title: l10n.warrantyCouldNotLoadPolicies,
+            message: l10n.warrantyCheckConnection,
+            actionLabel: l10n.commonRetry,
             onAction: () => setState(_reload),
           );
         }
         final policies = snapshot.data!;
         if (policies.isEmpty) {
-          return const EmptyState(icon: Icons.shield_outlined, title: 'No warranty policies yet', message: 'Buy a plan to protect your vehicle.');
+          return EmptyState(icon: Icons.shield_outlined, title: l10n.warrantyNoPoliciesYet, message: l10n.warrantyBuyPlanToProtect);
         }
         return RefreshIndicator(
           onRefresh: () async => setState(_reload),
@@ -258,8 +268,8 @@ class _WarrantyHomeScreenState extends State<WarrantyHomeScreen> with SingleTick
                       ],
                     ),
                     const SizedBox(height: 4),
-                    Text('Policy ${policy.policyNumber}', style: Theme.of(context).textTheme.bodyMedium),
-                    Text('Valid until ${policy.endDate.toLocal().toString().split(' ').first}', style: Theme.of(context).textTheme.bodyMedium),
+                    Text('${l10n.warrantyPolicyNumberLabel} ${policy.policyNumber}', style: Theme.of(context).textTheme.bodyMedium),
+                    Text('${l10n.warrantyValidUntil} ${policy.endDate.toLocal().toString().split(' ').first}', style: Theme.of(context).textTheme.bodyMedium),
                     if (policy.claims.isNotEmpty) ...[
                       const SizedBox(height: 10),
                       ...policy.claims.map((c) => Padding(
@@ -274,10 +284,10 @@ class _WarrantyHomeScreenState extends State<WarrantyHomeScreen> with SingleTick
                     ],
                     const SizedBox(height: 10),
                     Align(
-                      alignment: Alignment.centerRight,
+                      alignment: AlignmentDirectional.centerEnd,
                       child: TextButton(
                         onPressed: policy.status == 'active' ? () => _fileClaim(policy) : null,
-                        child: const Text('File a Claim'),
+                        child: Text(l10n.warrantyFileClaim),
                       ),
                     ),
                   ],

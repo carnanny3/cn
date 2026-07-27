@@ -1,4 +1,5 @@
 import '../../core/api/api_client.dart';
+import '../../l10n/generated/app_localizations.dart';
 import 'roadside_model.dart';
 
 class RoadsideRepository {
@@ -6,6 +7,9 @@ class RoadsideRepository {
 
   final ApiClient apiClient;
 
+  // NOTE: kept alongside serviceTypeLabel() below (rather than replaced)
+  // because lib/features/partner/partner_jobs_screen.dart also indexes this
+  // map directly and is outside this batch's scope.
   static const serviceTypes = <String, String>{
     'tow': 'Tow Truck',
     'jumpstart': 'Jump Start',
@@ -13,6 +17,32 @@ class RoadsideRepository {
     'fuel_delivery': 'Fuel Delivery',
     'lockout': 'Lockout',
   };
+
+  /// Service type IDs — stable, used as API values and lookup keys.
+  static const serviceTypeKeys = <String>[
+    'tow',
+    'jumpstart',
+    'flat_tire',
+    'fuel_delivery',
+    'lockout',
+  ];
+
+  static String serviceTypeLabel(AppLocalizations l10n, String key) {
+    switch (key) {
+      case 'tow':
+        return l10n.roadsideServiceTow;
+      case 'jumpstart':
+        return l10n.roadsideServiceJumpstart;
+      case 'flat_tire':
+        return l10n.roadsideServiceFlatTire;
+      case 'fuel_delivery':
+        return l10n.roadsideServiceFuelDelivery;
+      case 'lockout':
+        return l10n.roadsideServiceLockout;
+      default:
+        return key;
+    }
+  }
 
   Future<RoadsideRequestItem> createRequest({
     required String vehicleId,

@@ -6,6 +6,7 @@ import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/glass_card.dart';
 import '../../core/widgets/gradient_background.dart';
 import '../../core/widgets/status_badge.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../roadside/roadside_model.dart';
 import '../roadside/roadside_repository.dart';
 import 'partner_model.dart';
@@ -52,7 +53,8 @@ class _PartnerJobsScreenState extends State<PartnerJobsScreen> with SingleTicker
       if (mounted) setState(_reload);
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not update this request. Try again.')));
+        final l10n = AppLocalizations.of(context)!;
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.partnerJobsUpdateRequestFailed)));
       }
     } finally {
       if (mounted) setState(() => _busyId = null);
@@ -66,7 +68,8 @@ class _PartnerJobsScreenState extends State<PartnerJobsScreen> with SingleTicker
       if (mounted) setState(_reload);
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not update this job. Try again.')));
+        final l10n = AppLocalizations.of(context)!;
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.partnerJobsUpdateJobFailed)));
       }
     } finally {
       if (mounted) setState(() => _busyId = null);
@@ -80,7 +83,8 @@ class _PartnerJobsScreenState extends State<PartnerJobsScreen> with SingleTicker
       if (mounted) setState(_reload);
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not start this job. Try again.')));
+        final l10n = AppLocalizations.of(context)!;
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.partnerJobsStartJobFailed)));
       }
     } finally {
       if (mounted) setState(() => _busyId = null);
@@ -94,15 +98,20 @@ class _PartnerJobsScreenState extends State<PartnerJobsScreen> with SingleTicker
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        title: const Text('Jobs'),
+        title: Text(l10n.partnerJobsTitle),
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,
-          tabs: const [Tab(text: 'Service Bookings'), Tab(text: 'Inspections'), Tab(text: 'Roadside')],
+          tabs: [
+            Tab(text: l10n.partnerJobsTabBookings),
+            Tab(text: l10n.partnerJobsTabInspections),
+            Tab(text: l10n.partnerJobsTabRoadside),
+          ],
         ),
       ),
       body: GradientBackground(
@@ -120,24 +129,25 @@ class _PartnerJobsScreenState extends State<PartnerJobsScreen> with SingleTicker
     return FutureBuilder<List<RoadsideRequestItem>>(
       future: _roadsideFuture,
       builder: (context, snapshot) {
+        final l10n = AppLocalizations.of(context)!;
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
           return EmptyState(
             icon: Icons.wifi_off,
-            title: 'Could not load roadside requests',
-            message: 'Check your connection and try again.',
-            actionLabel: 'Retry',
+            title: l10n.partnerJobsRoadsideCouldNotLoad,
+            message: l10n.partnerJobsCheckConnection,
+            actionLabel: l10n.commonRetry,
             onAction: () => setState(_reload),
           );
         }
         final jobs = snapshot.data!;
         if (jobs.isEmpty) {
-          return const EmptyState(
+          return EmptyState(
             icon: Icons.support_agent_outlined,
-            title: 'No roadside requests yet',
-            message: 'Requests matched to your business will show up here.',
+            title: l10n.partnerJobsNoRoadsideYet,
+            message: l10n.partnerJobsNoRoadsideMessage,
           );
         }
         return RefreshIndicator(
@@ -166,7 +176,7 @@ class _PartnerJobsScreenState extends State<PartnerJobsScreen> with SingleTicker
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: busy
                           ? [const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))]
-                          : _roadsideActions(job),
+                          : _roadsideActions(job, l10n),
                     ),
                   ],
                 ),
@@ -178,18 +188,18 @@ class _PartnerJobsScreenState extends State<PartnerJobsScreen> with SingleTicker
     );
   }
 
-  List<Widget> _roadsideActions(RoadsideRequestItem job) {
+  List<Widget> _roadsideActions(RoadsideRequestItem job, AppLocalizations l10n) {
     switch (job.status) {
       case 'matched':
-        return [TextButton(onPressed: () => _updateRoadsideStatus(job, 'accepted'), child: const Text('Accept'))];
+        return [TextButton(onPressed: () => _updateRoadsideStatus(job, 'accepted'), child: Text(l10n.partnerJobsAccept))];
       case 'accepted':
-        return [TextButton(onPressed: () => _updateRoadsideStatus(job, 'en_route'), child: const Text('Start Driving'))];
+        return [TextButton(onPressed: () => _updateRoadsideStatus(job, 'en_route'), child: Text(l10n.partnerJobsStartDriving))];
       case 'en_route':
-        return [TextButton(onPressed: () => _updateRoadsideStatus(job, 'arrived'), child: const Text('Mark Arrived'))];
+        return [TextButton(onPressed: () => _updateRoadsideStatus(job, 'arrived'), child: Text(l10n.partnerJobsMarkArrived))];
       case 'arrived':
-        return [TextButton(onPressed: () => _updateRoadsideStatus(job, 'in_service'), child: const Text('Start Service'))];
+        return [TextButton(onPressed: () => _updateRoadsideStatus(job, 'in_service'), child: Text(l10n.partnerJobsStartService))];
       case 'in_service':
-        return [TextButton(onPressed: () => _updateRoadsideStatus(job, 'completed'), child: const Text('Mark Complete'))];
+        return [TextButton(onPressed: () => _updateRoadsideStatus(job, 'completed'), child: Text(l10n.partnerJobsMarkComplete))];
       default:
         return [];
     }
@@ -205,24 +215,25 @@ class _PartnerJobsScreenState extends State<PartnerJobsScreen> with SingleTicker
     return FutureBuilder<List<PartnerBookingJob>>(
       future: _bookingsFuture,
       builder: (context, snapshot) {
+        final l10n = AppLocalizations.of(context)!;
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
           return EmptyState(
             icon: Icons.wifi_off,
-            title: 'Could not load bookings',
-            message: 'Check your connection and try again.',
-            actionLabel: 'Retry',
+            title: l10n.partnerJobsBookingsCouldNotLoad,
+            message: l10n.partnerJobsCheckConnection,
+            actionLabel: l10n.commonRetry,
             onAction: () => setState(_reload),
           );
         }
         final jobs = snapshot.data!;
         if (jobs.isEmpty) {
-          return const EmptyState(
+          return EmptyState(
             icon: Icons.build_outlined,
-            title: 'No service bookings yet',
-            message: 'New customer bookings assigned to your business will show up here.',
+            title: l10n.partnerJobsNoBookingsYet,
+            message: l10n.partnerJobsNoBookingsMessage,
           );
         }
         return RefreshIndicator(
@@ -240,7 +251,7 @@ class _PartnerJobsScreenState extends State<PartnerJobsScreen> with SingleTicker
                   children: [
                     Row(
                       children: [
-                        Expanded(child: Text(job.serviceCategory ?? 'Service', style: Theme.of(context).textTheme.titleLarge)),
+                        Expanded(child: Text(job.serviceCategory ?? l10n.partnerJobsServiceFallback, style: Theme.of(context).textTheme.titleLarge)),
                         StatusBadge(status: _bookingStatusColor(job.status), label: job.status.replaceAll('_', ' ')),
                       ],
                     ),
@@ -255,7 +266,7 @@ class _PartnerJobsScreenState extends State<PartnerJobsScreen> with SingleTicker
                       children: [
                         Text('AED ${job.totalAmount.toStringAsFixed(0)}', style: const TextStyle(color: AppColors.goldLight, fontWeight: FontWeight.w700)),
                         const Spacer(),
-                        ..._bookingActions(job, busy),
+                        ..._bookingActions(job, busy, l10n),
                       ],
                     ),
                   ],
@@ -268,18 +279,21 @@ class _PartnerJobsScreenState extends State<PartnerJobsScreen> with SingleTicker
     );
   }
 
-  List<Widget> _bookingActions(PartnerBookingJob job, bool busy) {
+  List<Widget> _bookingActions(PartnerBookingJob job, bool busy, AppLocalizations l10n) {
     if (busy) return [const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))];
     switch (job.status) {
       case 'pending':
         return [
-          TextButton(onPressed: () => _updateBookingStatus(job, 'cancelled'), child: const Text('Reject', style: TextStyle(color: AppColors.statusRed))),
-          TextButton(onPressed: () => _updateBookingStatus(job, 'confirmed'), child: const Text('Accept')),
+          TextButton(
+            onPressed: () => _updateBookingStatus(job, 'cancelled'),
+            child: Text(l10n.partnerJobsReject, style: const TextStyle(color: AppColors.statusRed)),
+          ),
+          TextButton(onPressed: () => _updateBookingStatus(job, 'confirmed'), child: Text(l10n.partnerJobsAccept)),
         ];
       case 'confirmed':
-        return [TextButton(onPressed: () => _updateBookingStatus(job, 'in_progress'), child: const Text('Start Job'))];
+        return [TextButton(onPressed: () => _updateBookingStatus(job, 'in_progress'), child: Text(l10n.partnerJobsStartJob))];
       case 'in_progress':
-        return [TextButton(onPressed: () => _updateBookingStatus(job, 'completed'), child: const Text('Mark Complete'))];
+        return [TextButton(onPressed: () => _updateBookingStatus(job, 'completed'), child: Text(l10n.partnerJobsMarkComplete))];
       default:
         return [];
     }
@@ -295,24 +309,25 @@ class _PartnerJobsScreenState extends State<PartnerJobsScreen> with SingleTicker
     return FutureBuilder<List<PartnerInspectionJob>>(
       future: _inspectionsFuture,
       builder: (context, snapshot) {
+        final l10n = AppLocalizations.of(context)!;
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
           return EmptyState(
             icon: Icons.wifi_off,
-            title: 'Could not load inspections',
-            message: 'Check your connection and try again.',
-            actionLabel: 'Retry',
+            title: l10n.partnerJobsInspectionsCouldNotLoad,
+            message: l10n.partnerJobsCheckConnection,
+            actionLabel: l10n.commonRetry,
             onAction: () => setState(_reload),
           );
         }
         final jobs = snapshot.data!;
         if (jobs.isEmpty) {
-          return const EmptyState(
+          return EmptyState(
             icon: Icons.fact_check_outlined,
-            title: 'No inspection jobs yet',
-            message: 'Inspections assigned to you by Car Nanny will show up here.',
+            title: l10n.partnerJobsNoInspectionsYet,
+            message: l10n.partnerJobsNoInspectionsMessage,
           );
         }
         return RefreshIndicator(
@@ -330,7 +345,7 @@ class _PartnerJobsScreenState extends State<PartnerJobsScreen> with SingleTicker
                   children: [
                     Row(
                       children: [
-                        Expanded(child: Text(job.vehicleLabel ?? 'Vehicle inspection', style: Theme.of(context).textTheme.titleLarge)),
+                        Expanded(child: Text(job.vehicleLabel ?? l10n.partnerJobsVehicleInspectionFallback, style: Theme.of(context).textTheme.titleLarge)),
                         StatusBadge(status: _inspectionStatusColor(job.status), label: job.status.replaceAll('_', ' ')),
                       ],
                     ),
@@ -347,11 +362,11 @@ class _PartnerJobsScreenState extends State<PartnerJobsScreen> with SingleTicker
                         if (busy)
                           const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
                         else if (job.status == 'assigned')
-                          TextButton(onPressed: () => _startInspection(job), child: const Text('Start Job'))
+                          TextButton(onPressed: () => _startInspection(job), child: Text(l10n.partnerJobsStartJob))
                         else if (job.status == 'in_progress')
                           TextButton(
                             onPressed: () => context.push('/partner/inspection/${job.id}/checklist').then((_) => setState(_reload)),
-                            child: const Text('Complete Checklist'),
+                            child: Text(l10n.partnerJobsCompleteChecklist),
                           ),
                       ],
                     ),

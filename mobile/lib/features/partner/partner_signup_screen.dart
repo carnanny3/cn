@@ -5,6 +5,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/widgets/glass_card.dart';
 import '../../core/widgets/gradient_background.dart';
 import '../../core/widgets/gradient_button.dart';
+import '../../l10n/generated/app_localizations.dart';
 
 class PartnerSignupScreen extends StatefulWidget {
   const PartnerSignupScreen({super.key});
@@ -35,6 +36,7 @@ class _PartnerSignupScreenState extends State<PartnerSignupScreen> {
   }
 
   Future<void> _submit() async {
+    final l10n = AppLocalizations.of(context)!;
     setState(() => _submitting = true);
     final auth = context.read<AuthState>();
     final ok = await auth.registerPartner(
@@ -49,7 +51,7 @@ class _PartnerSignupScreenState extends State<PartnerSignupScreen> {
     setState(() => _submitting = false);
     if (!ok) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(auth.lastError ?? 'Something went wrong.')),
+        SnackBar(content: Text(auth.lastError ?? l10n.commonSomethingWentWrong)),
       );
     }
     // On success, AuthState.status flips to signedIn and the router redirect
@@ -58,8 +60,9 @@ class _PartnerSignupScreenState extends State<PartnerSignupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(backgroundColor: Colors.transparent, title: const Text('Become a Partner')),
+      appBar: AppBar(backgroundColor: Colors.transparent, title: Text(l10n.partnerSignupTitle)),
       body: GradientBackground(
         child: SafeArea(
           child: SingleChildScrollView(
@@ -69,10 +72,10 @@ class _PartnerSignupScreenState extends State<PartnerSignupScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text('List your garage or inspection business', style: Theme.of(context).textTheme.titleLarge),
+                  Text(l10n.partnerSignupHeadline, style: Theme.of(context).textTheme.titleLarge),
                   const SizedBox(height: 6),
                   Text(
-                    'Your account will be reviewed before it goes live.',
+                    l10n.partnerSignupReviewNotice,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   const SizedBox(height: 20),
@@ -85,8 +88,8 @@ class _PartnerSignupScreenState extends State<PartnerSignupScreen> {
                     ),
                     child: Row(
                       children: [
-                        Expanded(child: _TypeSegment(label: 'Garage', selected: _partnerType == 'garage', onTap: () => setState(() => _partnerType = 'garage'))),
-                        Expanded(child: _TypeSegment(label: 'Inspector', selected: _partnerType == 'inspector', onTap: () => setState(() => _partnerType = 'inspector'))),
+                        Expanded(child: _TypeSegment(label: l10n.partnerSignupTypeGarage, selected: _partnerType == 'garage', onTap: () => setState(() => _partnerType = 'garage'))),
+                        Expanded(child: _TypeSegment(label: l10n.partnerSignupTypeInspector, selected: _partnerType == 'inspector', onTap: () => setState(() => _partnerType = 'inspector'))),
                       ],
                     ),
                   ),
@@ -94,20 +97,20 @@ class _PartnerSignupScreenState extends State<PartnerSignupScreen> {
                   TextField(
                     controller: _businessNameController,
                     style: const TextStyle(color: AppColors.textPrimary),
-                    decoration: const InputDecoration(labelText: 'Business name'),
+                    decoration: InputDecoration(labelText: l10n.partnerSignupBusinessName),
                   ),
                   const SizedBox(height: 14),
                   TextField(
                     controller: _nameController,
                     style: const TextStyle(color: AppColors.textPrimary),
-                    decoration: const InputDecoration(labelText: 'Your full name'),
+                    decoration: InputDecoration(labelText: l10n.partnerSignupFullName),
                   ),
                   const SizedBox(height: 14),
                   TextField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
                     style: const TextStyle(color: AppColors.textPrimary),
-                    decoration: const InputDecoration(labelText: 'Email'),
+                    decoration: InputDecoration(labelText: l10n.partnerSignupEmail),
                   ),
                   const SizedBox(height: 14),
                   TextField(
@@ -115,7 +118,7 @@ class _PartnerSignupScreenState extends State<PartnerSignupScreen> {
                     obscureText: _obscurePassword,
                     style: const TextStyle(color: AppColors.textPrimary),
                     decoration: InputDecoration(
-                      labelText: 'Password',
+                      labelText: l10n.partnerSignupPassword,
                       suffixIcon: IconButton(
                         icon: Icon(
                           _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
@@ -130,10 +133,10 @@ class _PartnerSignupScreenState extends State<PartnerSignupScreen> {
                     controller: _phoneController,
                     keyboardType: TextInputType.phone,
                     style: const TextStyle(color: AppColors.textPrimary),
-                    decoration: const InputDecoration(labelText: 'Contact phone (optional)'),
+                    decoration: InputDecoration(labelText: l10n.partnerSignupContactPhoneOptional),
                   ),
                   const SizedBox(height: 20),
-                  GradientButton(label: 'Submit for review', loading: _submitting, onPressed: _submitting ? null : _submit),
+                  GradientButton(label: l10n.partnerSignupSubmit, loading: _submitting, onPressed: _submitting ? null : _submit),
                 ],
               ),
             ),

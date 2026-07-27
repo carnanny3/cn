@@ -5,6 +5,7 @@ import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/glass_card.dart';
 import '../../core/widgets/gradient_background.dart';
 import '../../core/widgets/status_badge.dart';
+import '../../l10n/generated/app_localizations.dart';
 import 'garage_repository.dart';
 import 'vehicle_model.dart';
 
@@ -38,8 +39,9 @@ class _VehicleProfileScreenState extends State<VehicleProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('Vehicle Health')),
+      appBar: AppBar(title: Text(l10n.vehicleProfileTitle)),
       body: GradientBackground(
         child: SafeArea(
           child: FutureBuilder<HealthScoreBreakdown>(
@@ -51,9 +53,9 @@ class _VehicleProfileScreenState extends State<VehicleProfileScreen> {
               if (snapshot.hasError) {
                 return EmptyState(
                   icon: Icons.wifi_off,
-                  title: 'Could not load health score',
-                  message: 'Check your connection to the server and try again.',
-                  actionLabel: 'Retry',
+                  title: l10n.vehicleProfileCouldNotLoad,
+                  message: l10n.homeCheckConnection,
+                  actionLabel: l10n.commonRetry,
                   onAction: () => setState(_reload),
                 );
               }
@@ -77,7 +79,10 @@ class _VehicleProfileScreenState extends State<VehicleProfileScreen> {
                           ),
                         ),
                         const SizedBox(height: 12),
-                        StatusBadge(status: _statusFor(health.overall), label: 'Health: ${health.overall}/100'),
+                        StatusBadge(
+                          status: _statusFor(health.overall),
+                          label: '${l10n.vehicleProfileHealthLabel}: ${health.overall}/100',
+                        ),
                       ],
                     ),
                   ),
@@ -86,14 +91,14 @@ class _VehicleProfileScreenState extends State<VehicleProfileScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Breakdown', style: Theme.of(context).textTheme.titleLarge),
+                        Text(l10n.vehicleProfileBreakdown, style: Theme.of(context).textTheme.titleLarge),
                         const SizedBox(height: 16),
                         ...health.categories.entries.map(
                           (e) => Padding(
                             padding: const EdgeInsets.symmetric(vertical: 8),
                             child: Row(
                               children: [
-                                Expanded(flex: 2, child: Text(_labelFor(e.key), style: Theme.of(context).textTheme.bodyMedium)),
+                                Expanded(flex: 2, child: Text(_labelFor(l10n, e.key), style: Theme.of(context).textTheme.bodyMedium)),
                                 Expanded(
                                   flex: 5,
                                   child: ClipRRect(
@@ -121,7 +126,7 @@ class _VehicleProfileScreenState extends State<VehicleProfileScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Recommendations', style: Theme.of(context).textTheme.titleLarge),
+                          Text(l10n.vehicleProfileRecommendations, style: Theme.of(context).textTheme.titleLarge),
                           const SizedBox(height: 14),
                           ...health.recommendations.map(
                             (r) => Padding(
@@ -149,16 +154,16 @@ class _VehicleProfileScreenState extends State<VehicleProfileScreen> {
     );
   }
 
-  String _labelFor(String key) {
+  String _labelFor(AppLocalizations l10n, String key) {
     switch (key) {
       case 'inspection':
-        return 'Inspection';
+        return l10n.vehicleProfileCategoryInspection;
       case 'maintenance':
-        return 'Maintenance';
+        return l10n.vehicleProfileCategoryMaintenance;
       case 'documents':
-        return 'Documents';
+        return l10n.vehicleProfileCategoryDocuments;
       case 'ageMileage':
-        return 'Age/Mileage';
+        return l10n.vehicleProfileCategoryAgeMileage;
       default:
         return key;
     }

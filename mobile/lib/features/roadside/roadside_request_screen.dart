@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/glass_card.dart';
 import '../../core/widgets/gradient_background.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../garage/garage_repository.dart';
 import 'roadside_repository.dart';
 
@@ -26,6 +27,7 @@ class _RoadsideRequestScreenState extends State<RoadsideRequestScreen> {
   bool _requesting = false;
 
   Future<void> _request(String serviceType) async {
+    final l10n = AppLocalizations.of(context)!;
     if (_requesting) return;
     setState(() => _requesting = true);
     try {
@@ -33,7 +35,7 @@ class _RoadsideRequestScreenState extends State<RoadsideRequestScreen> {
       if (!mounted) return;
       if (vehicles.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Add a vehicle to My Garage before requesting roadside assistance.')),
+          SnackBar(content: Text(l10n.roadsideRequestAddVehicleFirst)),
         );
         return;
       }
@@ -54,7 +56,7 @@ class _RoadsideRequestScreenState extends State<RoadsideRequestScreen> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not create the request. Check your connection and try again.')),
+          SnackBar(content: Text(l10n.roadsideRequestCreateFailed)),
         );
       }
     } finally {
@@ -64,8 +66,9 @@ class _RoadsideRequestScreenState extends State<RoadsideRequestScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('Roadside Assistance')),
+      appBar: AppBar(title: Text(l10n.roadsideRequestTitle)),
       body: GradientBackground(
         child: SafeArea(
           child: Padding(
@@ -73,9 +76,9 @@ class _RoadsideRequestScreenState extends State<RoadsideRequestScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('What do you need?', style: Theme.of(context).textTheme.headlineMedium),
+                Text(l10n.roadsideRequestHeadline, style: Theme.of(context).textTheme.headlineMedium),
                 const SizedBox(height: 8),
-                Text('Tap to request help — we\'ll match you with the nearest available provider.', style: Theme.of(context).textTheme.bodyMedium),
+                Text(l10n.roadsideRequestSubtitle, style: Theme.of(context).textTheme.bodyMedium),
                 const SizedBox(height: 24),
                 Expanded(
                   child: GridView.count(
@@ -83,16 +86,16 @@ class _RoadsideRequestScreenState extends State<RoadsideRequestScreen> {
                     mainAxisSpacing: 14,
                     crossAxisSpacing: 14,
                     childAspectRatio: 1.1,
-                    children: RoadsideRepository.serviceTypes.entries.map((entry) {
+                    children: RoadsideRepository.serviceTypeKeys.map((key) {
                       return GlassCard(
                         glow: true,
-                        onTap: _requesting ? null : () => _request(entry.key),
+                        onTap: _requesting ? null : () => _request(key),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(_serviceIcons[entry.key] ?? Icons.build_outlined, size: 36, color: AppColors.goldLight),
+                            Icon(_serviceIcons[key] ?? Icons.build_outlined, size: 36, color: AppColors.goldLight),
                             const SizedBox(height: 12),
-                            Text(entry.value, style: Theme.of(context).textTheme.titleLarge, textAlign: TextAlign.center),
+                            Text(RoadsideRepository.serviceTypeLabel(l10n, key), style: Theme.of(context).textTheme.titleLarge, textAlign: TextAlign.center),
                           ],
                         ),
                       );

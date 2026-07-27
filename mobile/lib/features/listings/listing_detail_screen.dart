@@ -7,6 +7,7 @@ import '../../core/widgets/glass_card.dart';
 import '../../core/widgets/gradient_background.dart';
 import '../../core/widgets/gradient_button.dart';
 import '../../core/widgets/status_badge.dart';
+import '../../l10n/generated/app_localizations.dart';
 import 'listing_model.dart';
 import 'listing_repository.dart';
 
@@ -32,21 +33,22 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
     _listingFuture = context.read<ListingRepository>().getOne(widget.listingId);
   }
 
-  String _sellerLabel(String sellerType) {
+  String _sellerLabel(AppLocalizations l10n, String sellerType) {
     switch (sellerType) {
       case 'certified':
-        return 'Car Nanny Certified';
+        return l10n.listingDetailSellerCertified;
       case 'dealer':
-        return 'Dealer';
+        return l10n.listingDetailSellerDealer;
       default:
-        return 'Private Seller';
+        return l10n.listingDetailSellerPrivate;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('Listing Details')),
+      appBar: AppBar(title: Text(l10n.listingDetailTitle)),
       body: GradientBackground(
         child: SafeArea(
           child: FutureBuilder<VehicleListingItem>(
@@ -58,9 +60,9 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
               if (snapshot.hasError) {
                 return EmptyState(
                   icon: Icons.wifi_off,
-                  title: 'Could not load this listing',
-                  message: 'Check your connection and try again.',
-                  actionLabel: 'Retry',
+                  title: l10n.listingDetailCouldNotLoad,
+                  message: l10n.listingDetailCheckConnection,
+                  actionLabel: l10n.commonRetry,
                   onAction: () => setState(_reload),
                 );
               }
@@ -76,7 +78,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                         Row(
                           children: [
                             Expanded(child: Text(listing.title, style: Theme.of(context).textTheme.titleLarge)),
-                            StatusBadge(status: listing.sellerType == 'certified' ? 'green' : 'amber', label: _sellerLabel(listing.sellerType)),
+                            StatusBadge(status: listing.sellerType == 'certified' ? 'green' : 'amber', label: _sellerLabel(l10n, listing.sellerType)),
                           ],
                         ),
                         const SizedBox(height: 10),
@@ -110,14 +112,17 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                         children: [
                           const Icon(Icons.fact_check_outlined, color: AppColors.goldLight),
                           const SizedBox(width: 12),
-                          Expanded(child: Text('View Inspection Report', style: Theme.of(context).textTheme.bodyLarge)),
-                          const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+                          Expanded(child: Text(l10n.listingDetailViewInspectionReport, style: Theme.of(context).textTheme.bodyLarge)),
+                          Icon(
+                            Directionality.of(context) == TextDirection.rtl ? Icons.chevron_left : Icons.chevron_right,
+                            color: AppColors.textSecondary,
+                          ),
                         ],
                       ),
                     )
                   else
                     GradientButton(
-                      label: 'Request Independent Inspection',
+                      label: l10n.listingDetailRequestInspection,
                       onPressed: () => context.push('/inspection/book'),
                     ),
                 ],

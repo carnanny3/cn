@@ -7,6 +7,7 @@ import '../../core/widgets/glass_card.dart';
 import '../../core/widgets/gradient_background.dart';
 import '../../core/widgets/gradient_button.dart';
 import '../../core/widgets/status_badge.dart';
+import '../../l10n/generated/app_localizations.dart';
 import 'support_model.dart';
 import 'support_repository.dart';
 
@@ -37,6 +38,7 @@ class _SupportScreenState extends State<SupportScreen> {
   }
 
   Future<void> _showNewTicketSheet() async {
+    final l10n = AppLocalizations.of(context)!;
     String category = SupportRepository.categories.keys.first;
     final subjectController = TextEditingController();
     final messageController = TextEditingController();
@@ -57,7 +59,7 @@ class _SupportScreenState extends State<SupportScreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Contact Support', style: Theme.of(sheetContext).textTheme.titleLarge),
+                    Text(l10n.supportContactSupport, style: Theme.of(sheetContext).textTheme.titleLarge),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
                       initialValue: category,
@@ -72,18 +74,18 @@ class _SupportScreenState extends State<SupportScreen> {
                     TextField(
                       controller: subjectController,
                       style: const TextStyle(color: AppColors.textPrimary),
-                      decoration: const InputDecoration(labelText: 'Subject'),
+                      decoration: InputDecoration(labelText: l10n.supportSubjectLabel),
                     ),
                     const SizedBox(height: 12),
                     TextField(
                       controller: messageController,
                       maxLines: 4,
                       style: const TextStyle(color: AppColors.textPrimary),
-                      decoration: const InputDecoration(labelText: 'How can we help?'),
+                      decoration: InputDecoration(labelText: l10n.supportHowCanWeHelp),
                     ),
                     const SizedBox(height: 20),
                     GradientButton(
-                      label: 'Submit Ticket',
+                      label: l10n.supportSubmitTicket,
                       loading: submitting,
                       onPressed: () async {
                         if (subjectController.text.trim().isEmpty || messageController.text.trim().isEmpty) return;
@@ -114,11 +116,12 @@ class _SupportScreenState extends State<SupportScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        title: const Text('Support'),
+        title: Text(l10n.supportTitle),
         actions: [IconButton(icon: const Icon(Icons.add), onPressed: _showNewTicketSheet)],
       ),
       body: GradientBackground(
@@ -132,9 +135,9 @@ class _SupportScreenState extends State<SupportScreen> {
               if (snapshot.hasError) {
                 return EmptyState(
                   icon: Icons.wifi_off,
-                  title: 'Could not load your tickets',
-                  message: 'Check your connection and try again.',
-                  actionLabel: 'Retry',
+                  title: l10n.supportCouldNotLoadTickets,
+                  message: l10n.supportCheckConnection,
+                  actionLabel: l10n.commonRetry,
                   onAction: () => setState(_reload),
                 );
               }
@@ -142,9 +145,9 @@ class _SupportScreenState extends State<SupportScreen> {
               if (tickets.isEmpty) {
                 return EmptyState(
                   icon: Icons.help_outline,
-                  title: 'No support tickets yet',
-                  message: 'Need help with something? Submit a ticket and we\'ll get back to you.',
-                  actionLabel: 'Submit Ticket',
+                  title: l10n.supportNoTicketsYet,
+                  message: l10n.supportNeedHelpMessage,
+                  actionLabel: l10n.supportSubmitTicket,
                   onAction: _showNewTicketSheet,
                 );
               }

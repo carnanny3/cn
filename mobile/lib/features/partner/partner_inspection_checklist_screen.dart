@@ -4,14 +4,8 @@ import '../../core/theme/app_colors.dart';
 import '../../core/widgets/glass_card.dart';
 import '../../core/widgets/gradient_background.dart';
 import '../../core/widgets/gradient_button.dart';
+import '../../l10n/generated/app_localizations.dart';
 import 'partner_repository.dart';
-
-const _resultLabels = <String, String>{
-  'pass': 'Pass',
-  'minor_defect': 'Minor',
-  'critical_defect': 'Critical',
-  'not_applicable': 'N/A',
-};
 
 class PartnerInspectionChecklistScreen extends StatefulWidget {
   const PartnerInspectionChecklistScreen({super.key, required this.inspectionId});
@@ -47,6 +41,7 @@ class _PartnerInspectionChecklistScreenState extends State<PartnerInspectionChec
       .join(' ');
 
   Future<void> _submit() async {
+    final l10n = AppLocalizations.of(context)!;
     setState(() => _submitting = true);
     try {
       final checkpoints = PartnerRepository.checkpointCategories
@@ -66,14 +61,14 @@ class _PartnerInspectionChecklistScreenState extends State<PartnerInspectionChec
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Checklist submitted for QA review.')),
+          SnackBar(content: Text(l10n.partnerChecklistSubmitted)),
         );
         Navigator.of(context).pop();
       }
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not submit the checklist. Check your connection and try again.')),
+          SnackBar(content: Text(l10n.partnerChecklistSubmitError)),
         );
       }
     } finally {
@@ -83,15 +78,22 @@ class _PartnerInspectionChecklistScreenState extends State<PartnerInspectionChec
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final resultLabels = <String, String>{
+      'pass': l10n.partnerChecklistResultPass,
+      'minor_defect': l10n.partnerChecklistResultMinor,
+      'critical_defect': l10n.partnerChecklistResultCritical,
+      'not_applicable': l10n.partnerChecklistResultNotApplicable,
+    };
     return Scaffold(
-      appBar: AppBar(title: const Text('Inspection Checklist')),
+      appBar: AppBar(title: Text(l10n.partnerChecklistTitle)),
       body: GradientBackground(
         child: SafeArea(
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
               Text(
-                'Record a result for every category. Add notes for anything flagged minor or critical.',
+                l10n.partnerChecklistInstructions,
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               const SizedBox(height: 16),
@@ -108,7 +110,7 @@ class _PartnerInspectionChecklistScreenState extends State<PartnerInspectionChec
                         Wrap(
                           spacing: 8,
                           runSpacing: 8,
-                          children: _resultLabels.entries.map((entry) {
+                          children: resultLabels.entries.map((entry) {
                             final selected = result == entry.key;
                             return ChoiceChip(
                               label: Text(entry.value),
@@ -125,7 +127,7 @@ class _PartnerInspectionChecklistScreenState extends State<PartnerInspectionChec
                           TextField(
                             controller: _notes[category],
                             style: const TextStyle(color: AppColors.textPrimary),
-                            decoration: const InputDecoration(hintText: 'Notes on the defect...'),
+                            decoration: InputDecoration(hintText: l10n.partnerChecklistDefectNotesHint),
                           ),
                         ],
                       ],
@@ -134,18 +136,18 @@ class _PartnerInspectionChecklistScreenState extends State<PartnerInspectionChec
                 );
               }),
               const SizedBox(height: 8),
-              Text('Road Test Notes (optional)', style: Theme.of(context).textTheme.titleLarge),
+              Text(l10n.partnerChecklistRoadTestNotesLabel, style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 8),
               GlassCard(
                 child: TextField(
                   controller: _roadTestNotesController,
                   style: const TextStyle(color: AppColors.textPrimary),
                   maxLines: 3,
-                  decoration: const InputDecoration(hintText: 'How did the vehicle drive?', border: InputBorder.none),
+                  decoration: InputDecoration(hintText: l10n.partnerChecklistRoadTestHint, border: InputBorder.none),
                 ),
               ),
               const SizedBox(height: 24),
-              GradientButton(label: 'Submit for QA Review', onPressed: _submit, loading: _submitting),
+              GradientButton(label: l10n.partnerChecklistSubmitButton, onPressed: _submit, loading: _submitting),
             ],
           ),
         ),

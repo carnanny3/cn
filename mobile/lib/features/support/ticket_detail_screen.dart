@@ -5,6 +5,7 @@ import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/glass_card.dart';
 import '../../core/widgets/gradient_background.dart';
 import '../../core/widgets/status_badge.dart';
+import '../../l10n/generated/app_localizations.dart';
 import 'support_model.dart';
 import 'support_repository.dart';
 
@@ -33,6 +34,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
   }
 
   Future<void> _send() async {
+    final l10n = AppLocalizations.of(context)!;
     final content = _replyController.text.trim();
     if (content.isEmpty || _sending) return;
     setState(() => _sending = true);
@@ -42,7 +44,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
       if (mounted) setState(_reload);
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not send your reply. Try again.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.ticketDetailSendFailed)));
       }
     } finally {
       if (mounted) setState(() => _sending = false);
@@ -51,8 +53,9 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('Support Ticket')),
+      appBar: AppBar(title: Text(l10n.ticketDetailTitle)),
       body: GradientBackground(
         child: SafeArea(
           child: FutureBuilder<SupportTicketDetail>(
@@ -64,9 +67,9 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
               if (snapshot.hasError) {
                 return EmptyState(
                   icon: Icons.wifi_off,
-                  title: 'Could not load this ticket',
-                  message: 'Check your connection and try again.',
-                  actionLabel: 'Retry',
+                  title: l10n.ticketDetailCouldNotLoad,
+                  message: l10n.ticketDetailCheckConnection,
+                  actionLabel: l10n.commonRetry,
                   onAction: () => setState(_reload),
                 );
               }
@@ -91,7 +94,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                       children: ticket.messages.map((m) {
                         final isUser = m.authorRole == 'user';
                         return Align(
-                          alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+                          alignment: isUser ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
                           child: Container(
                             margin: const EdgeInsets.symmetric(vertical: 6),
                             padding: const EdgeInsets.all(14),
@@ -118,7 +121,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                             child: TextField(
                               controller: _replyController,
                               style: const TextStyle(color: AppColors.textPrimary),
-                              decoration: const InputDecoration(hintText: 'Reply...', border: InputBorder.none, filled: false),
+                              decoration: InputDecoration(hintText: l10n.ticketDetailReplyHint, border: InputBorder.none, filled: false),
                               onSubmitted: (_) => _send(),
                             ),
                           ),

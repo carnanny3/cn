@@ -4,6 +4,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/widgets/glass_card.dart';
 import '../../core/widgets/gradient_background.dart';
 import '../../core/widgets/gradient_button.dart';
+import '../../l10n/generated/app_localizations.dart';
 import 'garage_repository.dart';
 
 class AddVehicleScreen extends StatefulWidget {
@@ -21,7 +22,15 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
   String _emirate = 'Dubai';
   bool _submitting = false;
 
-  static const _emirates = ['Dubai', 'Abu Dhabi', 'Sharjah', 'Ajman', 'Fujairah', 'Ras Al Khaimah', 'Umm Al Quwain'];
+  List<({String value, String label})> _emirateOptions(AppLocalizations l10n) => [
+        (value: 'Dubai', label: l10n.garageAddVehicleEmirateDubai),
+        (value: 'Abu Dhabi', label: l10n.garageAddVehicleEmirateAbuDhabi),
+        (value: 'Sharjah', label: l10n.garageAddVehicleEmirateSharjah),
+        (value: 'Ajman', label: l10n.garageAddVehicleEmirateAjman),
+        (value: 'Fujairah', label: l10n.garageAddVehicleEmirateFujairah),
+        (value: 'Ras Al Khaimah', label: l10n.garageAddVehicleEmirateRasAlKhaimah),
+        (value: 'Umm Al Quwain', label: l10n.garageAddVehicleEmirateUmmAlQuwain),
+      ];
 
   @override
   void dispose() {
@@ -45,8 +54,9 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
       if (mounted) Navigator.of(context).pop();
     } catch (_) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not add vehicle. Check the backend connection and try again.')),
+          SnackBar(content: Text(l10n.garageAddVehicleError)),
         );
       }
     } finally {
@@ -56,9 +66,11 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final emirateOptions = _emirateOptions(l10n);
     const textStyle = TextStyle(color: AppColors.textPrimary);
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Vehicle')),
+      appBar: AppBar(title: Text(l10n.garageAddVehicleTitle)),
       body: GradientBackground(
         child: SafeArea(
           child: ListView(
@@ -68,29 +80,29 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    TextField(controller: _makeController, style: textStyle, decoration: const InputDecoration(labelText: 'Make (e.g. Toyota)')),
+                    TextField(controller: _makeController, style: textStyle, decoration: InputDecoration(labelText: l10n.garageAddVehicleMakeLabel)),
                     const SizedBox(height: 14),
-                    TextField(controller: _modelController, style: textStyle, decoration: const InputDecoration(labelText: 'Model (e.g. Camry)')),
+                    TextField(controller: _modelController, style: textStyle, decoration: InputDecoration(labelText: l10n.garageAddVehicleModelLabel)),
                     const SizedBox(height: 14),
                     TextField(
                       controller: _yearController,
                       keyboardType: TextInputType.number,
                       style: textStyle,
-                      decoration: const InputDecoration(labelText: 'Year'),
+                      decoration: InputDecoration(labelText: l10n.garageAddVehicleYearLabel),
                     ),
                     const SizedBox(height: 14),
-                    TextField(controller: _plateController, style: textStyle, decoration: const InputDecoration(labelText: 'Plate number')),
+                    TextField(controller: _plateController, style: textStyle, decoration: InputDecoration(labelText: l10n.garageAddVehiclePlateLabel)),
                     const SizedBox(height: 14),
                     DropdownButtonFormField<String>(
                       initialValue: _emirate,
                       style: textStyle,
                       dropdownColor: AppColors.navyMid,
-                      decoration: const InputDecoration(labelText: 'Emirate'),
-                      items: _emirates.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+                      decoration: InputDecoration(labelText: l10n.garageAddVehicleEmirateLabel),
+                      items: emirateOptions.map((e) => DropdownMenuItem(value: e.value, child: Text(e.label))).toList(),
                       onChanged: (v) => setState(() => _emirate = v ?? _emirate),
                     ),
                     const SizedBox(height: 20),
-                    GradientButton(label: 'Save Vehicle', loading: _submitting, onPressed: _submitting ? null : _submit),
+                    GradientButton(label: l10n.garageAddVehicleSave, loading: _submitting, onPressed: _submitting ? null : _submit),
                   ],
                 ),
               ),

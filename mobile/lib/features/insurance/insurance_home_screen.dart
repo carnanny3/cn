@@ -6,6 +6,7 @@ import '../../core/widgets/glass_card.dart';
 import '../../core/widgets/gradient_background.dart';
 import '../../core/widgets/gradient_button.dart';
 import '../../core/widgets/status_badge.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../garage/garage_repository.dart';
 import '../garage/vehicle_model.dart';
 import 'insurance_model.dart';
@@ -43,17 +44,18 @@ class _InsuranceHomeScreenState extends State<InsuranceHomeScreen> with SingleTi
   }
 
   Future<void> _requestQuote() async {
+    final l10n = AppLocalizations.of(context)!;
     final vehicles = await context.read<GarageRepository>().fetchVehicles();
     if (!mounted) return;
     if (vehicles.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Add a vehicle to My Garage before requesting insurance.')),
+        SnackBar(content: Text(l10n.insuranceAddVehicleFirst)),
       );
       return;
     }
 
     Vehicle? selectedVehicle = vehicles.first;
-    String coverageType = InsuranceRepository.coverageTypes.keys.first;
+    String coverageType = InsuranceRepository.coverageTypeKeys.first;
 
     final confirmed = await showModalBottomSheet<bool>(
       context: context,
@@ -70,7 +72,7 @@ class _InsuranceHomeScreenState extends State<InsuranceHomeScreen> with SingleTi
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text('Request a Quote', style: Theme.of(sheetContext).textTheme.titleLarge),
+                    Text(l10n.insuranceRequestQuoteTitle, style: Theme.of(sheetContext).textTheme.titleLarge),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<Vehicle>(
                       initialValue: selectedVehicle,
@@ -84,13 +86,13 @@ class _InsuranceHomeScreenState extends State<InsuranceHomeScreen> with SingleTi
                       initialValue: coverageType,
                       dropdownColor: AppColors.navyMid,
                       style: const TextStyle(color: AppColors.textPrimary),
-                      items: InsuranceRepository.coverageTypes.entries
-                          .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
+                      items: InsuranceRepository.coverageTypeKeys
+                          .map((key) => DropdownMenuItem(value: key, child: Text(InsuranceRepository.coverageTypeLabel(l10n, key))))
                           .toList(),
                       onChanged: (v) => setSheetState(() => coverageType = v ?? coverageType),
                     ),
                     const SizedBox(height: 20),
-                    GradientButton(label: 'Request Quote', onPressed: () => Navigator.of(sheetContext).pop(true)),
+                    GradientButton(label: l10n.insuranceRequestQuote, onPressed: () => Navigator.of(sheetContext).pop(true)),
                     const SizedBox(height: 16),
                   ],
                 ),
@@ -105,27 +107,28 @@ class _InsuranceHomeScreenState extends State<InsuranceHomeScreen> with SingleTi
     try {
       await context.read<InsuranceRepository>().requestQuote(vehicleId: selectedVehicle!.id, coverageType: coverageType);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Quote requested — check back soon.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.insuranceQuoteRequested)));
         setState(_reload);
       }
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not request a quote. Try again.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.insuranceQuoteRequestFailed)));
       }
     }
   }
 
   Future<void> _purchase(InsuranceQuote quote) async {
+    final l10n = AppLocalizations.of(context)!;
     setState(() => _purchasing = true);
     try {
       await context.read<InsuranceRepository>().purchasePolicy(quote.id);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Policy purchased.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.insurancePolicyPurchased)));
         setState(_reload);
       }
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not complete the purchase. Try again.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.insurancePurchaseFailed)));
       }
     } finally {
       if (mounted) setState(() => _purchasing = false);
@@ -134,13 +137,14 @@ class _InsuranceHomeScreenState extends State<InsuranceHomeScreen> with SingleTi
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        title: const Text('Insurance'),
+        title: Text(l10n.insuranceTitle),
         actions: [IconButton(icon: const Icon(Icons.add), onPressed: _requestQuote)],
-        bottom: TabBar(controller: _tabController, tabs: const [Tab(text: 'Quotes'), Tab(text: 'My Policies')]),
+        bottom: TabBar(controller: _tabController, tabs: [Tab(text: l10n.insuranceQuotesTab), Tab(text: l10n.insurancePoliciesTab)]),
       ),
       body: GradientBackground(
         child: SafeArea(
@@ -154,15 +158,16 @@ class _InsuranceHomeScreenState extends State<InsuranceHomeScreen> with SingleTi
     return FutureBuilder<List<InsuranceQuote>>(
       future: _quotesFuture,
       builder: (context, snapshot) {
+        final l10n = AppLocalizations.of(context)!;
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
           return EmptyState(
             icon: Icons.wifi_off,
-            title: 'Could not load your quotes',
-            message: 'Check your connection and try again.',
-            actionLabel: 'Retry',
+            title: l10n.insuranceCouldNotLoadQuotes,
+            message: l10n.insuranceCheckConnectionRetry,
+            actionLabel: l10n.commonRetry,
             onAction: () => setState(_reload),
           );
         }
@@ -170,9 +175,9 @@ class _InsuranceHomeScreenState extends State<InsuranceHomeScreen> with SingleTi
         if (quotes.isEmpty) {
           return EmptyState(
             icon: Icons.security_outlined,
-            title: 'No quotes yet',
-            message: 'Request a quote to compare insurance options for your vehicle.',
-            actionLabel: 'Request Quote',
+            title: l10n.insuranceNoQuotesYet,
+            message: l10n.insuranceNoQuotesMessage,
+            actionLabel: l10n.insuranceRequestQuote,
             onAction: _requestQuote,
           );
         }
@@ -193,24 +198,24 @@ class _InsuranceHomeScreenState extends State<InsuranceHomeScreen> with SingleTi
                     ],
                   ),
                   if (quote.coverageType != null)
-                    Text(InsuranceRepository.coverageTypes[quote.coverageType] ?? quote.coverageType!, style: Theme.of(context).textTheme.bodyMedium),
+                    Text(InsuranceRepository.coverageTypeLabel(l10n, quote.coverageType!), style: Theme.of(context).textTheme.bodyMedium),
                   if (quote.premiumAmount != null) ...[
                     const SizedBox(height: 8),
-                    Text('AED ${quote.premiumAmount!.toStringAsFixed(0)} / year', style: const TextStyle(color: AppColors.goldLight, fontWeight: FontWeight.w700, fontSize: 18)),
+                    Text(l10n.insurancePremiumPerYear(quote.premiumAmount!.toStringAsFixed(0)), style: const TextStyle(color: AppColors.goldLight, fontWeight: FontWeight.w700, fontSize: 18)),
                     if (quote.excessAmount != null)
-                      Text('Excess: AED ${quote.excessAmount!.toStringAsFixed(0)}', style: Theme.of(context).textTheme.bodySmall),
+                      Text(l10n.insuranceExcessAmount(quote.excessAmount!.toStringAsFixed(0)), style: Theme.of(context).textTheme.bodySmall),
                   ] else
                     Padding(
                       padding: const EdgeInsets.only(top: 8),
-                      child: Text('Awaiting a quote from the provider...', style: Theme.of(context).textTheme.bodySmall),
+                      child: Text(l10n.insuranceAwaitingQuote, style: Theme.of(context).textTheme.bodySmall),
                     ),
                   if (quote.status == 'quoted' && !quote.hasPolicy) ...[
                     const SizedBox(height: 10),
                     Align(
-                      alignment: Alignment.centerRight,
+                      alignment: AlignmentDirectional.centerEnd,
                       child: TextButton(
                         onPressed: _purchasing ? null : () => _purchase(quote),
-                        child: const Text('Buy This Policy'),
+                        child: Text(l10n.insuranceBuyPolicy),
                       ),
                     ),
                   ],
@@ -227,21 +232,22 @@ class _InsuranceHomeScreenState extends State<InsuranceHomeScreen> with SingleTi
     return FutureBuilder<List<InsurancePolicy>>(
       future: _policiesFuture,
       builder: (context, snapshot) {
+        final l10n = AppLocalizations.of(context)!;
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
           return EmptyState(
             icon: Icons.wifi_off,
-            title: 'Could not load your policies',
-            message: 'Check your connection and try again.',
-            actionLabel: 'Retry',
+            title: l10n.insuranceCouldNotLoadPolicies,
+            message: l10n.insuranceCheckConnectionRetry,
+            actionLabel: l10n.commonRetry,
             onAction: () => setState(_reload),
           );
         }
         final policies = snapshot.data!;
         if (policies.isEmpty) {
-          return const EmptyState(icon: Icons.security_outlined, title: 'No insurance policies yet', message: 'Purchase a quoted policy to see it here.');
+          return EmptyState(icon: Icons.security_outlined, title: l10n.insuranceNoPoliciesYet, message: l10n.insuranceNoPoliciesMessage);
         }
         return RefreshIndicator(
           onRefresh: () async => setState(_reload),
@@ -262,8 +268,8 @@ class _InsuranceHomeScreenState extends State<InsuranceHomeScreen> with SingleTi
                       ],
                     ),
                     const SizedBox(height: 4),
-                    Text('Policy ${policy.policyNumber}', style: Theme.of(context).textTheme.bodyMedium),
-                    Text('Valid until ${policy.endDate.toLocal().toString().split(' ').first}', style: Theme.of(context).textTheme.bodyMedium),
+                    Text(l10n.insurancePolicyNumber(policy.policyNumber), style: Theme.of(context).textTheme.bodyMedium),
+                    Text(l10n.insuranceValidUntil(policy.endDate.toLocal().toString().split(' ').first), style: Theme.of(context).textTheme.bodyMedium),
                   ],
                 ),
               );

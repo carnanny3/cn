@@ -5,6 +5,7 @@ import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/glass_card.dart';
 import '../../core/widgets/gradient_background.dart';
 import '../../core/widgets/status_badge.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../garage/garage_repository.dart';
 import '../garage/vehicle_model.dart';
 import 'concierge_model.dart';
@@ -48,6 +49,7 @@ class _ConciergeScreenState extends State<ConciergeScreen> with SingleTickerProv
   }
 
   Future<void> _requestOrder(String orderType) async {
+    final l10n = AppLocalizations.of(context)!;
     if (_requesting) return;
     setState(() => _requesting = true);
     try {
@@ -55,7 +57,7 @@ class _ConciergeScreenState extends State<ConciergeScreen> with SingleTickerProv
       if (!mounted) return;
       if (vehicles.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Add a vehicle to My Garage before requesting concierge services.')),
+          SnackBar(content: Text(l10n.conciergeAddVehicleFirst)),
         );
         return;
       }
@@ -71,7 +73,7 @@ class _ConciergeScreenState extends State<ConciergeScreen> with SingleTickerProv
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text('Select a vehicle', style: Theme.of(sheetContext).textTheme.titleLarge),
+                    Text(l10n.conciergeSelectVehicle, style: Theme.of(sheetContext).textTheme.titleLarge),
                     const SizedBox(height: 12),
                     ...vehicles.map((v) => ListTile(
                           title: Text(v.label, style: const TextStyle(color: AppColors.textPrimary)),
@@ -85,13 +87,13 @@ class _ConciergeScreenState extends State<ConciergeScreen> with SingleTickerProv
 
       await context.read<ConciergeRepository>().createOrder(orderType: orderType, vehicleId: vehicle.id);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Request received — check My Orders for status.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.conciergeRequestReceived)));
         setState(_reload);
         _tabController.animateTo(1);
       }
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not submit the request. Try again.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.conciergeSubmitFailed)));
       }
     } finally {
       if (mounted) setState(() => _requesting = false);
@@ -106,22 +108,23 @@ class _ConciergeScreenState extends State<ConciergeScreen> with SingleTickerProv
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        title: const Text('Concierge'),
-        bottom: TabBar(controller: _tabController, tabs: const [Tab(text: 'Request'), Tab(text: 'My Orders')]),
+        title: Text(l10n.conciergeTitle),
+        bottom: TabBar(controller: _tabController, tabs: [Tab(text: l10n.conciergeRequestTab), Tab(text: l10n.conciergeOrdersTab)]),
       ),
       body: GradientBackground(
         child: SafeArea(
-          child: TabBarView(controller: _tabController, children: [_buildRequestTab(), _buildOrdersTab()]),
+          child: TabBarView(controller: _tabController, children: [_buildRequestTab(l10n), _buildOrdersTab()]),
         ),
       ),
     );
   }
 
-  Widget _buildRequestTab() {
+  Widget _buildRequestTab(AppLocalizations l10n) {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: GridView.count(
@@ -129,15 +132,15 @@ class _ConciergeScreenState extends State<ConciergeScreen> with SingleTickerProv
         mainAxisSpacing: 12,
         crossAxisSpacing: 12,
         childAspectRatio: 1.2,
-        children: ConciergeRepository.orderTypes.entries.map((entry) {
+        children: ConciergeRepository.orderTypeKeys.map((key) {
           return GlassCard(
-            onTap: _requesting ? null : () => _requestOrder(entry.key),
+            onTap: _requesting ? null : () => _requestOrder(key),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(_orderTypeIcons[entry.key] ?? Icons.support_agent_outlined, size: 32, color: AppColors.goldLight),
+                Icon(_orderTypeIcons[key] ?? Icons.support_agent_outlined, size: 32, color: AppColors.goldLight),
                 const SizedBox(height: 10),
-                Text(entry.value, style: Theme.of(context).textTheme.titleLarge, textAlign: TextAlign.center),
+                Text(ConciergeRepository.orderTypeLabel(l10n, key), style: Theme.of(context).textTheme.titleLarge, textAlign: TextAlign.center),
               ],
             ),
           );
@@ -150,21 +153,22 @@ class _ConciergeScreenState extends State<ConciergeScreen> with SingleTickerProv
     return FutureBuilder<List<ConciergeOrderItem>>(
       future: _ordersFuture,
       builder: (context, snapshot) {
+        final l10n = AppLocalizations.of(context)!;
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
           return EmptyState(
             icon: Icons.wifi_off,
-            title: 'Could not load your orders',
-            message: 'Check your connection and try again.',
-            actionLabel: 'Retry',
+            title: l10n.conciergeCouldNotLoadOrders,
+            message: l10n.conciergeCheckConnectionRetry,
+            actionLabel: l10n.commonRetry,
             onAction: () => setState(_reload),
           );
         }
         final orders = snapshot.data!;
         if (orders.isEmpty) {
-          return const EmptyState(icon: Icons.support_agent_outlined, title: 'No concierge orders yet', message: 'Request a service from the Request tab.');
+          return EmptyState(icon: Icons.support_agent_outlined, title: l10n.conciergeNoOrdersYet, message: l10n.conciergeNoOrdersMessage);
         }
         return RefreshIndicator(
           onRefresh: () async => setState(_reload),
@@ -180,7 +184,7 @@ class _ConciergeScreenState extends State<ConciergeScreen> with SingleTickerProv
                   children: [
                     Row(
                       children: [
-                        Expanded(child: Text(ConciergeRepository.orderTypes[order.orderType] ?? order.orderType, style: Theme.of(context).textTheme.titleLarge)),
+                        Expanded(child: Text(ConciergeRepository.orderTypeLabel(l10n, order.orderType), style: Theme.of(context).textTheme.titleLarge)),
                         StatusBadge(status: _statusColorKey(order.status), label: order.status.replaceAll('_', ' ')),
                       ],
                     ),

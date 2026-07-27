@@ -5,6 +5,7 @@ import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/glass_card.dart';
 import '../../core/widgets/gradient_background.dart';
 import '../../core/widgets/status_badge.dart';
+import '../../l10n/generated/app_localizations.dart';
 import 'partner_model.dart';
 import 'partner_repository.dart';
 
@@ -44,9 +45,10 @@ class _PartnerHomeScreenState extends State<PartnerHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: AppBar(backgroundColor: Colors.transparent, title: const Text('Partner Dashboard')),
+      appBar: AppBar(backgroundColor: Colors.transparent, title: Text(l10n.partnerHomeTitle)),
       body: GradientBackground(
         child: SafeArea(
           child: FutureBuilder<(PartnerProfile, PartnerEarnings)>(
@@ -58,9 +60,9 @@ class _PartnerHomeScreenState extends State<PartnerHomeScreen> {
               if (snapshot.hasError) {
                 return EmptyState(
                   icon: Icons.wifi_off,
-                  title: 'Could not load your dashboard',
-                  message: 'Check your connection to the server and try again.',
-                  actionLabel: 'Retry',
+                  title: l10n.partnerHomeCouldNotLoad,
+                  message: l10n.homeCheckConnection,
+                  actionLabel: l10n.commonRetry,
                   onAction: () => setState(_reload),
                 );
               }
@@ -85,7 +87,7 @@ class _PartnerHomeScreenState extends State<PartnerHomeScreen> {
                         if (profile.status == 'pending') ...[
                           const SizedBox(height: 12),
                           Text(
-                            'Your business is under review. You\'ll be notified once verified — this can take a few business days.',
+                            l10n.partnerHomePendingReview,
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ],
@@ -93,7 +95,7 @@ class _PartnerHomeScreenState extends State<PartnerHomeScreen> {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  Text('Earnings', style: Theme.of(context).textTheme.titleLarge),
+                  Text(l10n.partnerHomeEarnings, style: Theme.of(context).textTheme.titleLarge),
                   const SizedBox(height: 12),
                   Row(
                     children: [
@@ -103,7 +105,7 @@ class _PartnerHomeScreenState extends State<PartnerHomeScreen> {
                             children: [
                               Text('AED ${earnings.netPayout.toStringAsFixed(0)}', style: Theme.of(context).textTheme.headlineMedium),
                               const SizedBox(height: 4),
-                              Text('Net payout', style: Theme.of(context).textTheme.bodySmall),
+                              Text(l10n.partnerHomeNetPayout, style: Theme.of(context).textTheme.bodySmall),
                             ],
                           ),
                         ),
@@ -115,7 +117,7 @@ class _PartnerHomeScreenState extends State<PartnerHomeScreen> {
                             children: [
                               Text('${earnings.completedJobCount}', style: Theme.of(context).textTheme.headlineMedium),
                               const SizedBox(height: 4),
-                              Text('Completed jobs', style: Theme.of(context).textTheme.bodySmall),
+                              Text(l10n.partnerHomeCompletedJobs, style: Theme.of(context).textTheme.bodySmall),
                             ],
                           ),
                         ),
@@ -127,7 +129,10 @@ class _PartnerHomeScreenState extends State<PartnerHomeScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Gross (${(earnings.commissionRate * 100).toStringAsFixed(0)}% commission)', style: Theme.of(context).textTheme.bodyMedium),
+                        Text(
+                          l10n.partnerHomeGrossCommission((earnings.commissionRate * 100).toStringAsFixed(0)),
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
                         Text('AED ${earnings.grossAmount.toStringAsFixed(0)}', style: const TextStyle(color: AppColors.goldLight, fontWeight: FontWeight.w700)),
                       ],
                     ),

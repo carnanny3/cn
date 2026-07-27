@@ -5,6 +5,7 @@ import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/glass_card.dart';
 import '../../core/widgets/gradient_background.dart';
 import '../../core/widgets/status_badge.dart';
+import '../../l10n/generated/app_localizations.dart';
 import 'inspection_model.dart';
 import 'inspection_repository.dart';
 
@@ -32,8 +33,9 @@ class _InspectionReportScreenState extends State<InspectionReportScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('Inspection Report')),
+      appBar: AppBar(title: Text(l10n.inspectionReportTitle)),
       body: GradientBackground(
         child: SafeArea(
           child: FutureBuilder<InspectionReport>(
@@ -45,9 +47,9 @@ class _InspectionReportScreenState extends State<InspectionReportScreen> {
               if (snapshot.hasError) {
                 return EmptyState(
                   icon: Icons.hourglass_empty,
-                  title: 'Report not available yet',
-                  message: 'The report may still be generating, or the connection to the server failed. Try again shortly.',
-                  actionLabel: 'Retry',
+                  title: l10n.inspectionReportNotAvailable,
+                  message: l10n.inspectionReportNotAvailableMessage,
+                  actionLabel: l10n.commonRetry,
                   onAction: () => setState(_reload),
                 );
               }
@@ -77,7 +79,7 @@ class _InspectionReportScreenState extends State<InspectionReportScreen> {
                             const Icon(Icons.smart_toy_outlined, color: AppColors.goldLight),
                             const SizedBox(width: 8),
                             Expanded(
-                              child: Text('AI Recommendation: ${report.recommendationLabel}',
+                              child: Text('${l10n.inspectionReportAiRecommendationLabel}: ${report.recommendationLabel}',
                                   style: Theme.of(context).textTheme.titleLarge),
                             ),
                           ],
@@ -94,7 +96,7 @@ class _InspectionReportScreenState extends State<InspectionReportScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Category scores', style: Theme.of(context).textTheme.titleLarge),
+                        Text(l10n.inspectionReportCategoryScores, style: Theme.of(context).textTheme.titleLarge),
                         const SizedBox(height: 14),
                         ...report.categoryScores.entries.map(
                           (e) => Padding(
@@ -119,7 +121,7 @@ class _InspectionReportScreenState extends State<InspectionReportScreen> {
                             children: [
                               Text('${report.criticalDefectCount}', style: Theme.of(context).textTheme.headlineMedium),
                               const SizedBox(height: 4),
-                              Text('Critical defects', style: Theme.of(context).textTheme.bodySmall, textAlign: TextAlign.center),
+                              Text(l10n.inspectionReportCriticalDefects, style: Theme.of(context).textTheme.bodySmall, textAlign: TextAlign.center),
                             ],
                           ),
                         ),
@@ -129,10 +131,13 @@ class _InspectionReportScreenState extends State<InspectionReportScreen> {
                         child: GlassCard(
                           child: Column(
                             children: [
-                              Text('AED ${report.estimatedRepairCost.toStringAsFixed(0)}',
+                              Text(
+                                  Directionality.of(context) == TextDirection.rtl
+                                      ? '${report.estimatedRepairCost.toStringAsFixed(0)} ${l10n.inspectionReportCurrencyAed}'
+                                      : '${l10n.inspectionReportCurrencyAed} ${report.estimatedRepairCost.toStringAsFixed(0)}',
                                   style: Theme.of(context).textTheme.headlineMedium),
                               const SizedBox(height: 4),
-                              Text('Estimated repair cost', style: Theme.of(context).textTheme.bodySmall, textAlign: TextAlign.center),
+                              Text(l10n.inspectionReportEstimatedRepairCost, style: Theme.of(context).textTheme.bodySmall, textAlign: TextAlign.center),
                             ],
                           ),
                         ),

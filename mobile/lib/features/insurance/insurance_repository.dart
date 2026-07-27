@@ -1,4 +1,5 @@
 import '../../core/api/api_client.dart';
+import '../../l10n/generated/app_localizations.dart';
 import 'insurance_model.dart';
 
 class InsuranceRepository {
@@ -6,10 +7,22 @@ class InsuranceRepository {
 
   final ApiClient apiClient;
 
-  static const coverageTypes = <String, String>{
-    'comprehensive': 'Comprehensive',
-    'third_party_liability': 'Third-Party Liability',
-  };
+  /// Coverage type IDs — stable, used as API values and lookup keys.
+  static const coverageTypeKeys = <String>[
+    'comprehensive',
+    'third_party_liability',
+  ];
+
+  static String coverageTypeLabel(AppLocalizations l10n, String key) {
+    switch (key) {
+      case 'comprehensive':
+        return l10n.insuranceCoverageComprehensive;
+      case 'third_party_liability':
+        return l10n.insuranceCoverageThirdPartyLiability;
+      default:
+        return key;
+    }
+  }
 
   Future<void> requestQuote({required String vehicleId, String? coverageType}) async {
     await apiClient.dio.post('/insurance/quotes', data: {
