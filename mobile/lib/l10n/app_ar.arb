@@ -99,6 +99,33 @@
 
   "moreServicesTitle": "خدمات أخرى",
 
+  "documentsTitle": "المستندات",
+  "documentsNoneYet": "لم يتم تحميل أي مستندات بعد.",
+  "documentsAdd": "إضافة مستند",
+  "documentsChooseType": "ما الذي تريد تحميله؟",
+  "documentsTypeRegistration": "بطاقة الملكية",
+  "documentsTypeInsurance": "التأمين",
+  "documentsTypeWarranty": "الضمان",
+  "documentsTypeOwnershipTransfer": "نقل الملكية",
+  "documentsTypeOther": "أخرى",
+  "documentsUploading": "جارٍ التحميل...",
+  "documentsUploaded": "تم تحميل المستند.",
+  "documentsUploadFailed": "تعذّر تحميل المستند. حاول مرة أخرى.",
+  "documentsCouldNotLoad": "تعذّر تحميل المستندات.",
+  "documentsExpires": "تنتهي في",
+  "documentsVerified": "موثّق",
+  "documentsCouldNotOpen": "تعذّر فتح هذا المستند.",
+
+  "vehiclePhotoAdd": "إضافة صورة",
+  "vehiclePhotoReplace": "تغيير الصورة",
+  "vehiclePhotoUploaded": "تم تحديث الصورة.",
+  "vehiclePhotoUploadFailed": "تعذّر تحميل الصورة. حاول مرة أخرى.",
+
+  "marketplacePhotosLabel": "الصور",
+  "marketplaceAddPhotos": "إضافة صور",
+  "marketplacePhotoLimit": "يمكنك إضافة 8 صور كحد أقصى.",
+  "marketplaceUploadingPhotos": "جارٍ تحميل الصور...",
+
   "partnerNavHome": "الرئيسية",
   "partnerNavJobs": "المهام",
   "partnerNavCatalog": "الكتالوج",

@@ -2,15 +2,51 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException 
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateListingDto } from './dto/create-listing.dto';
 import { CreateAdminListingDto } from './dto/create-admin-listing.dto';
+import { MAX_LISTING_PHOTOS, StorageService } from '../storage/storage.service';
 
 const MAX_COMPARE = 3;
 
 @Injectable()
 export class ListingsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly storage: StorageService,
+  ) {}
+
+  async uploadPhotos(
+    sellerId: string,
+    files: { buffer: Buffer; mimetype: string; size: number; originalname?: string }[],
+  ) {
+    const uploaded = [];
+    for (const file of files) {
+      uploaded.push(await this.storage.upload(file, 'listing-photos', sellerId));
+    }
+    return { urls: uploaded.map((u) => u.url) };
+  }
+
+  /**
+   * Only accepts photo URLs this server issued. Without this a caller could
+   * point a listing's photos at any external address.
+   */
+  private assertOwnPhotos(photoUrls?: string[]) {
+    if (!photoUrls || photoUrls.length === 0) return;
+    if (photoUrls.length > MAX_LISTING_PHOTOS) {
+      throw new BadRequestException({
+        code: 'TOO_MANY_PHOTOS',
+        message: `A listing can have at most ${MAX_LISTING_PHOTOS} photos.`,
+      });
+    }
+    if (!photoUrls.every((url) => this.storage.isIssuedValue(url, 'listing-photos'))) {
+      throw new BadRequestException({
+        code: 'INVALID_PHOTO_URL',
+        message: 'Photos must be uploaded through POST /listings/photos first.',
+      });
+    }
+  }
 
   /** A customer listing their own owned vehicle for sale — tagged "private" per the trust-level requirement (PRD §13.5/§36: every listing must show Certified/Dealer/Private). */
   async createPrivateListing(sellerId: string, dto: CreateListingDto) {
+    this.assertOwnPhotos(dto.photoUrls);
     if (dto.vehicleId) {
       const owner = await this.prisma.vehicleOwner.findUnique({
         where: { vehicleId_userId: { vehicleId: dto.vehicleId, userId: sellerId } },
@@ -41,6 +77,7 @@ export class ListingsService {
 
   /** Car Nanny's own certified inventory — the only listing type live at Phase 2 launch per the PRD's phasing note. */
   createCertifiedListing(dto: CreateAdminListingDto) {
+    this.assertOwnPhotos(dto.photoUrls);
     return this.prisma.vehicleListing.create({
       data: {
         vehicleId: dto.vehicleId,

@@ -4,12 +4,16 @@ import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { UpdateVehicleDto } from './dto/update-vehicle.dto';
 import { AddDocumentDto } from './dto/add-document.dto';
 import { calculateHealthScore } from './health-score.util';
+import { StorageService } from '../storage/storage.service';
 
 const REQUIRED_DOC_TYPES = ['registration', 'insurance'] as const;
 
 @Injectable()
 export class VehiclesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly storage: StorageService,
+  ) {}
 
   async create(userId: string, dto: CreateVehicleDto) {
     if (dto.vin) {
@@ -67,26 +71,48 @@ export class VehiclesService {
     return this.prisma.vehicle.update({ where: { id: vehicleId }, data: dto });
   }
 
-  async addDocument(userId: string, vehicleId: string, dto: AddDocumentDto) {
+  async addDocument(
+    userId: string,
+    vehicleId: string,
+    dto: AddDocumentDto,
+    file: { buffer: Buffer; mimetype: string; size: number; originalname?: string },
+  ) {
     await this.assertOwnership(userId, vehicleId);
-    return this.prisma.vehicleDocument.create({
+    const { key } = await this.storage.upload(file, 'vehicle-docs', vehicleId);
+    const document = await this.prisma.vehicleDocument.create({
       data: {
         vehicleId,
         type: dto.type,
-        fileUrl: dto.fileUrl,
+        // Documents are private, so this column holds the storage key rather
+        // than a URL; readable links are minted per request in listDocuments.
+        fileUrl: key,
         issuedDate: dto.issuedDate ? new Date(dto.issuedDate) : undefined,
         expiryDate: dto.expiryDate ? new Date(dto.expiryDate) : undefined,
         uploadedBy: userId,
       },
     });
+    return { ...document, viewUrl: await this.storage.viewUrlFor(document.fileUrl) };
   }
 
   async listDocuments(userId: string, vehicleId: string) {
     await this.assertOwnership(userId, vehicleId);
-    return this.prisma.vehicleDocument.findMany({
+    const documents = await this.prisma.vehicleDocument.findMany({
       where: { vehicleId },
       orderBy: { createdAt: 'desc' },
     });
+    return Promise.all(
+      documents.map(async (doc) => ({ ...doc, viewUrl: await this.storage.viewUrlFor(doc.fileUrl) })),
+    );
+  }
+
+  async setPrimaryPhoto(
+    userId: string,
+    vehicleId: string,
+    file: { buffer: Buffer; mimetype: string; size: number; originalname?: string },
+  ) {
+    await this.assertOwnership(userId, vehicleId);
+    const { url } = await this.storage.upload(file, 'vehicle-photos', vehicleId);
+    return this.prisma.vehicle.update({ where: { id: vehicleId }, data: { primaryPhotoUrl: url } });
   }
 
   async getHealthScore(userId: string, vehicleId: string) {

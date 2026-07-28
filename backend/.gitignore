@@ -3,3 +3,5 @@ dist/
 coverage/
 .env
 *.log
+# Local-disk fallback for uploads when R2 isn't configured — runtime data.
+uploads/

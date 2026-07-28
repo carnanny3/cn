@@ -99,6 +99,33 @@
 
   "moreServicesTitle": "More Services",
 
+  "documentsTitle": "Documents",
+  "documentsNoneYet": "No documents uploaded yet.",
+  "documentsAdd": "Add Document",
+  "documentsChooseType": "What are you uploading?",
+  "documentsTypeRegistration": "Registration (Mulkiya)",
+  "documentsTypeInsurance": "Insurance",
+  "documentsTypeWarranty": "Warranty",
+  "documentsTypeOwnershipTransfer": "Ownership Transfer",
+  "documentsTypeOther": "Other",
+  "documentsUploading": "Uploading...",
+  "documentsUploaded": "Document uploaded.",
+  "documentsUploadFailed": "Could not upload the document. Try again.",
+  "documentsCouldNotLoad": "Could not load documents.",
+  "documentsExpires": "Expires",
+  "documentsVerified": "Verified",
+  "documentsCouldNotOpen": "Could not open this document.",
+
+  "vehiclePhotoAdd": "Add Photo",
+  "vehiclePhotoReplace": "Change Photo",
+  "vehiclePhotoUploaded": "Photo updated.",
+  "vehiclePhotoUploadFailed": "Could not upload the photo. Try again.",
+
+  "marketplacePhotosLabel": "Photos",
+  "marketplaceAddPhotos": "Add Photos",
+  "marketplacePhotoLimit": "You can add up to 8 photos.",
+  "marketplaceUploadingPhotos": "Uploading photos...",
+
   "partnerNavHome": "Home",
   "partnerNavJobs": "Jobs",
   "partnerNavCatalog": "Catalog",

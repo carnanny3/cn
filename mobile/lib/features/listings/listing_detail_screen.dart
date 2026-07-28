@@ -10,6 +10,7 @@ import '../../core/widgets/status_badge.dart';
 import '../../l10n/generated/app_localizations.dart';
 import 'listing_model.dart';
 import 'listing_repository.dart';
+import 'listing_thumbnail.dart';
 
 class ListingDetailScreen extends StatefulWidget {
   const ListingDetailScreen({super.key, required this.listingId});
@@ -70,6 +71,21 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
               return ListView(
                 padding: const EdgeInsets.all(20),
                 children: [
+                  if (listing.photoUrls.isNotEmpty) ...[
+                    SizedBox(
+                      height: 200,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: listing.photoUrls.length,
+                        separatorBuilder: (_, __) => const SizedBox(width: 10),
+                        itemBuilder: (context, index) => ListingThumbnail(
+                          url: listing.photoUrls[index],
+                          size: 200,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
                   GlassCard(
                     glow: true,
                     child: Column(

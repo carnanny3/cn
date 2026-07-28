@@ -1,6 +1,11 @@
+import 'dart:typed_data';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import '../../core/api/api_client.dart';
+import '../../core/api/file_pickers.dart';
+import '../../core/api/upload_file.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/glass_card.dart';
@@ -10,6 +15,11 @@ import '../../core/widgets/status_badge.dart';
 import '../../l10n/generated/app_localizations.dart';
 import 'listing_model.dart';
 import 'listing_repository.dart';
+import 'listing_thumbnail.dart';
+
+/// Mirrors MAX_LISTING_PHOTOS in the backend's storage.service.ts — the API
+/// rejects more than this, so the picker stops before the request would fail.
+const _maxPhotos = 8;
 
 class MarketplaceScreen extends StatefulWidget {
   const MarketplaceScreen({super.key});
@@ -103,6 +113,8 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> with SingleTicker
             Icon(selected ? Icons.check_box : Icons.check_box_outline_blank, color: AppColors.goldLight),
             const SizedBox(width: 10),
           ],
+          ListingThumbnail(url: listing.photoUrls.isEmpty ? null : listing.photoUrls.first),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -189,6 +201,10 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> with SingleTicker
               onTap: () => context.push('/listings/${listings[index].id}'),
               child: Row(
                 children: [
+                  ListingThumbnail(
+                    url: listings[index].photoUrls.isEmpty ? null : listings[index].photoUrls.first,
+                  ),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -226,6 +242,7 @@ class _SellTabState extends State<_SellTab> {
   final _mileageController = TextEditingController();
   final _priceController = TextEditingController();
   bool _submitting = false;
+  final _photos = <UploadFile>[];
 
   @override
   void dispose() {
@@ -249,12 +266,17 @@ class _SellTabState extends State<_SellTab> {
     }
     setState(() => _submitting = true);
     try {
-      await context.read<ListingRepository>().createListing(
+      final repository = context.read<ListingRepository>();
+      // Photos have to exist before the listing references them — the API only
+      // accepts photo URLs it issued itself.
+      final photoUrls = _photos.isEmpty ? null : await repository.uploadPhotos(_photos);
+      await repository.createListing(
             make: make,
             model: model,
             year: year,
             mileageKm: int.tryParse(_mileageController.text.trim()),
             askingPrice: price,
+            photoUrls: photoUrls,
           );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.marketplaceListingLive)));
@@ -263,15 +285,32 @@ class _SellTabState extends State<_SellTab> {
         _yearController.clear();
         _mileageController.clear();
         _priceController.clear();
+        setState(_photos.clear);
         widget.onCreated();
       }
-    } catch (_) {
+    } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.marketplaceCreateListingFailed)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e is DioException ? ApiClient.messageFrom(e) : l10n.marketplaceCreateListingFailed),
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
+  }
+
+  Future<void> _addPhotos() async {
+    final l10n = AppLocalizations.of(context)!;
+    final remaining = _maxPhotos - _photos.length;
+    if (remaining <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.marketplacePhotoLimit)));
+      return;
+    }
+    final picked = await pickImages(limit: remaining);
+    if (picked.isEmpty || !mounted) return;
+    setState(() => _photos.addAll(picked));
   }
 
   @override
@@ -296,9 +335,68 @@ class _SellTabState extends State<_SellTab> {
               TextField(controller: _mileageController, style: textStyle, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: l10n.marketplaceMileageLabel)),
               const SizedBox(height: 12),
               TextField(controller: _priceController, style: textStyle, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: l10n.marketplacePriceLabel)),
+              const SizedBox(height: 18),
+              Text(l10n.marketplacePhotosLabel, style: Theme.of(context).textTheme.bodyLarge),
+              const SizedBox(height: 10),
+              if (_photos.isNotEmpty)
+                SizedBox(
+                  height: 84,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: _photos.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 10),
+                    itemBuilder: (context, index) => _PhotoThumb(
+                      bytes: _photos[index].bytes,
+                      onRemove: () => setState(() => _photos.removeAt(index)),
+                    ),
+                  ),
+                ),
+              if (_photos.isNotEmpty) const SizedBox(height: 10),
+              OutlinedButton.icon(
+                onPressed: _submitting ? null : _addPhotos,
+                icon: const Icon(Icons.add_photo_alternate_outlined, size: 18, color: AppColors.goldLight),
+                label: Text(l10n.marketplaceAddPhotos),
+                style: OutlinedButton.styleFrom(side: const BorderSide(color: AppColors.glassBorder)),
+              ),
               const SizedBox(height: 20),
-              GradientButton(label: l10n.marketplacePublishListing, loading: _submitting, onPressed: _submitting ? null : _submit),
+              GradientButton(
+                label: _submitting && _photos.isNotEmpty ? l10n.marketplaceUploadingPhotos : l10n.marketplacePublishListing,
+                loading: _submitting,
+                onPressed: _submitting ? null : _submit,
+              ),
             ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// A picked-but-not-yet-uploaded photo, rendered from memory with a remove button.
+class _PhotoThumb extends StatelessWidget {
+  const _PhotoThumb({required this.bytes, required this.onRemove});
+
+  final Uint8List bytes;
+  final VoidCallback onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Image.memory(bytes, width: 84, height: 84, fit: BoxFit.cover),
+        ),
+        PositionedDirectional(
+          top: 2,
+          end: 2,
+          child: InkWell(
+            onTap: onRemove,
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.6), shape: BoxShape.circle),
+              child: const Icon(Icons.close, size: 14, color: Colors.white),
+            ),
           ),
         ),
       ],

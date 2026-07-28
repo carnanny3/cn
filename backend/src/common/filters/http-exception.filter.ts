@@ -56,6 +56,9 @@ function codeFromStatus(status: number): string {
       return 'NOT_FOUND';
     case HttpStatus.CONFLICT:
       return 'CONFLICT';
+    // Raised by multer when an upload exceeds a route's file-size limit.
+    case HttpStatus.PAYLOAD_TOO_LARGE:
+      return 'FILE_TOO_LARGE';
     default:
       return 'INTERNAL_ERROR';
   }

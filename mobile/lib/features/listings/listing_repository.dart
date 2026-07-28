@@ -1,4 +1,6 @@
+import 'package:dio/dio.dart';
 import '../../core/api/api_client.dart';
+import '../../core/api/upload_file.dart';
 import 'listing_model.dart';
 
 class ListingRepository {
@@ -28,6 +30,21 @@ class ListingRepository {
     return (response.data as List).map((e) => VehicleListingItem.fromJson(e as Map<String, dynamic>)).toList();
   }
 
+  /// Uploads photos ahead of the listing itself and returns the URLs to submit
+  /// with [createListing] — the API only accepts photo URLs it issued here.
+  Future<List<String>> uploadPhotos(List<UploadFile> files) async {
+    final formData = FormData();
+    for (final file in files) {
+      formData.files.add(MapEntry('files', file.toMultipart()));
+    }
+    final response = await apiClient.dio.post(
+      '/listings/photos',
+      data: formData,
+      options: uploadOptions(),
+    );
+    return ((response.data as Map<String, dynamic>)['urls'] as List).map((e) => e as String).toList();
+  }
+
   Future<VehicleListingItem> createListing({
     String? vehicleId,
     required String make,
@@ -35,6 +52,7 @@ class ListingRepository {
     required int year,
     int? mileageKm,
     required double askingPrice,
+    List<String>? photoUrls,
   }) async {
     final response = await apiClient.dio.post('/listings', data: {
       if (vehicleId != null) 'vehicleId': vehicleId,
@@ -43,6 +61,7 @@ class ListingRepository {
       'year': year,
       if (mileageKm != null) 'mileageKm': mileageKm,
       'askingPrice': askingPrice,
+      if (photoUrls != null && photoUrls.isNotEmpty) 'photoUrls': photoUrls,
     });
     return VehicleListingItem.fromJson(response.data as Map<String, dynamic>);
   }
