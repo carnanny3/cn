@@ -142,6 +142,59 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  /// Deleting is irreversible and wipes uploaded documents, so it asks for the
+  /// password rather than a bare "are you sure" — the same gate the API applies.
+  Future<void> _deleteAccount() async {
+    final l10n = AppLocalizations.of(context)!;
+    final passwordController = TextEditingController();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: AppColors.navyMid,
+        title: Text(l10n.profileDeleteAccount, style: const TextStyle(color: AppColors.textPrimary)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(l10n.profileDeleteAccountWarning, style: const TextStyle(color: AppColors.textSecondary)),
+            const SizedBox(height: 16),
+            TextField(
+              controller: passwordController,
+              obscureText: true,
+              style: const TextStyle(color: AppColors.textPrimary),
+              decoration: InputDecoration(labelText: l10n.profileCurrentPassword),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.commonCancel, style: const TextStyle(color: AppColors.textSecondary)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(l10n.profileDeleteAccountConfirm, style: const TextStyle(color: AppColors.statusRed)),
+          ),
+        ],
+      ),
+    );
+
+    final password = passwordController.text;
+    passwordController.dispose();
+    if (confirmed != true || password.isEmpty || !mounted) return;
+
+    try {
+      await context.read<UserRepository>().deleteAccount(password);
+      if (!mounted) return;
+      // The account can't be signed into again, so drop the session too.
+      context.read<AuthState>().logout();
+    } on DioException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(ApiClient.messageFrom(e))));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -261,6 +314,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         minimumSize: const Size.fromHeight(52),
                         side: const BorderSide(color: AppColors.glassBorder),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    // Sits below Log out and styled as plain text: reachable, as
+                    // Play requires, without inviting a mis-tap.
+                    TextButton(
+                      onPressed: _deleteAccount,
+                      child: Text(
+                        l10n.profileDeleteAccount,
+                        style: const TextStyle(color: AppColors.textSecondary, decoration: TextDecoration.underline),
                       ),
                     ),
                     const SizedBox(height: 24),

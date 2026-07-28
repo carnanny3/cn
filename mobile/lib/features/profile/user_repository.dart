@@ -32,4 +32,10 @@ class UserRepository {
       'newPassword': newPassword,
     });
   }
+
+  /// Irreversible. Erases personal data server-side; the caller must sign out
+  /// afterwards, since the account can no longer be signed into.
+  Future<void> deleteAccount(String password) async {
+    await apiClient.dio.delete('/users/me', data: {'password': password});
+  }
 }

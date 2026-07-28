@@ -1,0 +1,123 @@
+<!doctype html>
+<!--
+  Public account-deletion page. Google Play requires a publicly reachable URL
+  describing how to request deletion, in addition to the in-app route — this is
+  that URL. Enter it in Play Console under Data safety.
+
+  It is deliberately a plain static file rather than a React route: it must load
+  for someone who has already uninstalled the app and has no account, and it
+  should not depend on the admin bundle building.
+
+  TODO before publishing: confirm support@carnanny.app actually receives mail.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Delete your Car Nanny account</title>
+    <style>
+      :root {
+        --navy-deep: #0a1628;
+        --navy-mid: #12233d;
+        --gold: #d4af6a;
+        --text: #f4f6fa;
+        --text-dim: #9fb0c9;
+        --border: rgba(212, 175, 106, 0.25);
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        padding: 32px 20px 64px;
+        background: var(--navy-deep);
+        color: var(--text);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        line-height: 1.6;
+      }
+      main { max-width: 680px; margin: 0 auto; }
+      h1 { font-size: 28px; margin: 0 0 8px; }
+      h2 { font-size: 18px; margin: 32px 0 8px; color: var(--gold); }
+      .lede { color: var(--text-dim); margin: 0 0 32px; }
+      .card {
+        background: var(--navy-mid);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 20px 24px;
+        margin-bottom: 20px;
+      }
+      ol, ul { padding-left: 20px; margin: 8px 0; }
+      li { margin: 6px 0; }
+      a { color: var(--gold); }
+      .kept { color: var(--text-dim); font-size: 15px; }
+      footer { margin-top: 40px; color: var(--text-dim); font-size: 14px; }
+      code {
+        background: rgba(255, 255, 255, 0.07);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Delete your Car Nanny account</h1>
+      <p class="lede">
+        You can delete your Car Nanny account and personal data at any time,
+        either from inside the app or by writing to us.
+      </p>
+
+      <div class="card">
+        <h2 style="margin-top: 0">From the app</h2>
+        <ol>
+          <li>Open Car Nanny and go to the <strong>Profile</strong> tab.</li>
+          <li>Scroll to the bottom and tap <strong>Delete my account</strong>.</li>
+          <li>Enter your password to confirm.</li>
+        </ol>
+        <p class="kept">
+          Deletion happens immediately. You are signed out and the account can no
+          longer be signed into.
+        </p>
+      </div>
+
+      <div class="card">
+        <h2 style="margin-top: 0">By email</h2>
+        <p>
+          If you have already uninstalled the app or cannot sign in, email
+          <a href="mailto:support@carnanny.app">support@carnanny.app</a> from the
+          address registered to your account, with the subject
+          <code>Delete my account</code>.
+        </p>
+        <p class="kept">
+          We verify the request comes from the account holder and complete it
+          within 30 days.
+        </p>
+      </div>
+
+      <h2>What is deleted</h2>
+      <ul>
+        <li>Your name, email address and phone number</li>
+        <li>Photos of your vehicle registration and insurance documents</li>
+        <li>Vehicle photos and marketplace listing photos you uploaded</li>
+        <li>AI assistant conversations and support ticket messages</li>
+        <li>Notification preferences and push notification tokens</li>
+        <li>Rewards balance, transaction history and referrals</li>
+      </ul>
+
+      <h2>What is kept, and why</h2>
+      <p class="kept">
+        Records of completed bookings, payments and invoices are retained as
+        <strong>anonymous</strong> records with no link to you personally. We are
+        required to keep financial and tax records for a fixed period, so these
+        cannot be removed on request — but they no longer identify you.
+      </p>
+      <p class="kept">
+        Reviews you left for partner garages are kept as a rating only; any
+        comment text you wrote is removed.
+      </p>
+
+      <footer>
+        Questions about your data? Contact
+        <a href="mailto:support@carnanny.app">support@carnanny.app</a>.
+      </footer>
+    </main>
+  </body>
+</html>
