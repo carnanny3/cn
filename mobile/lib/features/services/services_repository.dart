@@ -8,7 +8,9 @@ class ServicesRepository {
 
   final ApiClient apiClient;
 
-  /// Service category IDs — stable, used as API values and lookup keys.
+  /// Categories a customer can book directly, in the order the services grid
+  /// shows them. Deliberately not every category that can appear on a booking —
+  /// see [categoryLabel].
   static const categoryKeys = <String>[
     'oil_change',
     'general_service',
@@ -19,6 +21,9 @@ class ServicesRepository {
     'detailing',
   ];
 
+  /// Label for any service category the backend can produce, which is a wider
+  /// set than [categoryKeys] — a warranty claim approved for repair creates a
+  /// booking under 'warranty_repair' that nobody books directly.
   static String categoryLabel(AppLocalizations l10n, String key) {
     switch (key) {
       case 'oil_change':
@@ -35,10 +40,21 @@ class ServicesRepository {
         return l10n.serviceTires;
       case 'detailing':
         return l10n.serviceDetailing;
+      case 'warranty_repair':
+        return l10n.serviceWarrantyRepair;
       default:
-        return key;
+        // serviceCategory is a free-form column, so an unrecognised value is
+        // always possible. Showing "Some New Thing" reads as an oversight;
+        // showing "some_new_thing" reads as a bug.
+        return _humanize(key);
     }
   }
+
+  static String _humanize(String key) => key
+      .split('_')
+      .where((word) => word.isNotEmpty)
+      .map((word) => word[0].toUpperCase() + word.substring(1))
+      .join(' ');
 
   Future<List<PartnerResult>> searchGarages(String serviceCategory, {double? lat, double? lng}) async {
     final response = await apiClient.dio.get('/partners/search', queryParameters: {

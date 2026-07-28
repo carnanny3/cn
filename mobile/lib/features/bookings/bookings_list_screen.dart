@@ -54,9 +54,21 @@ class _BookingsListScreenState extends State<BookingsListScreen> {
     return '${d.day} ${months[d.month - 1]} ${d.year}';
   }
 
+  /// Every booking needs a title. serviceCategory is optional on roadside and
+  /// concierge bookings, so falling straight through to the category lookup
+  /// used to leave those cards with a blank heading.
   String _titleFor(AppLocalizations l10n, Booking b) {
-    if (b.bookingType == 'inspection') return l10n.bookingPrePurchaseInspection;
-    return ServicesRepository.categoryLabel(l10n, b.serviceCategory ?? '');
+    switch (b.bookingType) {
+      case 'inspection':
+        return l10n.bookingPrePurchaseInspection;
+      case 'roadside':
+        return l10n.roadsideRequestTitle;
+      case 'concierge':
+        return l10n.conciergeTitle;
+    }
+    final category = b.serviceCategory;
+    if (category == null || category.isEmpty) return l10n.partnerJobsServiceFallback;
+    return ServicesRepository.categoryLabel(l10n, category);
   }
 
   @override
