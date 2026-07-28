@@ -40,10 +40,14 @@ describe('StorageService', () => {
       ).rejects.toBeInstanceOf(BadRequestException);
     });
 
-    it('rejects a PDF as a photo even though documents allow it', async () => {
-      await expect(
-        service.upload(file({ mimetype: 'application/pdf' }), 'vehicle-photos', 'v-1'),
-      ).rejects.toBeInstanceOf(BadRequestException);
+    it('rejects a PDF in every scope, documents included', async () => {
+      // Documents are photographed, not attached as files, so no scope accepts
+      // application/pdf — that keeps every document a plain image to render.
+      for (const scope of ['vehicle-docs', 'vehicle-photos', 'listing-photos'] as const) {
+        await expect(
+          service.upload(file({ mimetype: 'application/pdf' }), scope, 'owner-1'),
+        ).rejects.toBeInstanceOf(BadRequestException);
+      }
     });
 
     it('rejects a file over the scope size cap', async () => {

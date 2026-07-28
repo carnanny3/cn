@@ -10,9 +10,12 @@ const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MB = 1024 * 1024;
 
 const SCOPES: Record<StorageScope, { mimeTypes: string[]; maxBytes: number; public: boolean }> = {
+  // Images only: documents are captured by photographing the card, so nothing
+  // uploads PDFs and accepting them would only widen the validation surface —
+  // and it keeps every viewer of a document a plain image viewer.
   // Registration and insurance papers carry personal data, so these are never
   // public — reads go through a short-lived signed URL instead.
-  'vehicle-docs': { mimeTypes: [...IMAGE_TYPES, 'application/pdf'], maxBytes: 12 * MB, public: false },
+  'vehicle-docs': { mimeTypes: IMAGE_TYPES, maxBytes: 12 * MB, public: false },
   'vehicle-photos': { mimeTypes: IMAGE_TYPES, maxBytes: 8 * MB, public: true },
   'listing-photos': { mimeTypes: IMAGE_TYPES, maxBytes: 8 * MB, public: true },
 };

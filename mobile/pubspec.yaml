@@ -20,7 +20,13 @@ dependencies:
   share_plus: ^10.1.4
   url_launcher: ^6.3.1
   image_picker: ^1.2.3
-  file_picker: ^11.0.2
+  # Pinned to 10.x, which is the only range that builds here. Its Android side
+  # No file_picker: every published version conflicts with this project's
+  # toolchain (AGP 9.0.1 + android.builtInKotlin=false + compileSdk 36).
+  # 11.x's Kotlin sources never compile, 10.x pins compileSdk 34, and 8.x still
+  # uses the removed v1 Android embedding. Documents are captured with
+  # image_picker instead; the API still accepts PDFs, so only the in-app picker
+  # is affected. See lib/core/api/file_pickers.dart.
 
 dev_dependencies:
   flutter_test:

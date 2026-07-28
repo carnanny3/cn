@@ -104,6 +104,8 @@
   "documentsNoneYet": "No documents uploaded yet.",
   "documentsAdd": "Add Document",
   "documentsChooseType": "What are you uploading?",
+  "documentsTakePhoto": "Take a photo",
+  "documentsChooseExisting": "Choose an existing photo",
   "documentsTypeRegistration": "Registration (Mulkiya)",
   "documentsTypeInsurance": "Insurance",
   "documentsTypeWarranty": "Warranty",

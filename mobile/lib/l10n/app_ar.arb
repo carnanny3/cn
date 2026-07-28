@@ -104,6 +104,8 @@
   "documentsNoneYet": "لم يتم تحميل أي مستندات بعد.",
   "documentsAdd": "إضافة مستند",
   "documentsChooseType": "ما الذي تريد تحميله؟",
+  "documentsTakePhoto": "التقاط صورة",
+  "documentsChooseExisting": "اختيار صورة موجودة",
   "documentsTypeRegistration": "بطاقة الملكية",
   "documentsTypeInsurance": "التأمين",
   "documentsTypeWarranty": "الضمان",

@@ -1,9 +1,8 @@
-import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
 import 'upload_file.dart';
 
-/// Thin wrappers over the two pickers so screens don't each repeat the
-/// bytes-vs-path handling. Both always return bytes, which is what the upload
+/// Thin wrappers over image_picker so screens don't each repeat the
+/// bytes-handling. All of these return bytes, which is what the upload
 /// endpoints take and what works on web as well as mobile.
 
 /// One photo from the camera or gallery.
@@ -29,17 +28,13 @@ Future<List<UploadFile>> pickImages({required int limit}) async {
   return files;
 }
 
-/// A document — PDF or a photo of one.
-Future<UploadFile?> pickDocument() async {
-  // file_picker 11 exposes pickFiles as a static; the older
-  // FilePicker.platform.pickFiles form no longer exists.
-  final result = await FilePicker.pickFiles(
-    type: FileType.custom,
-    allowedExtensions: const ['pdf', 'jpg', 'jpeg', 'png', 'webp'],
-    // Required so bytes are populated on mobile, not just on web.
-    withData: true,
-  );
-  final file = result?.files.single;
-  if (file == null || file.bytes == null) return null;
-  return UploadFile(filename: file.name, bytes: file.bytes!);
-}
+/// A document, captured as a photo.
+///
+/// Documents are images by design — the API accepts only JPG/PNG/WebP for them
+/// (see the vehicle-docs scope in backend storage.service.ts), so every stored
+/// document is a plain image to render rather than something needing a PDF
+/// viewer. Photographing a registration card or insurance certificate is the
+/// normal flow. (No published file_picker version builds against this project's
+/// AGP 9 / builtInKotlin=false / compileSdk 36 combination either — see the
+/// note in pubspec.yaml.)
+Future<UploadFile?> pickDocument({required bool fromCamera}) => pickImage(fromCamera: fromCamera);

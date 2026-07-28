@@ -336,7 +336,30 @@ class _DocumentsCardState extends State<_DocumentsCard> {
     );
     if (type == null || !mounted) return;
 
-    final file = await pickDocument();
+    final fromCamera = await showModalBottomSheet<bool>(
+      context: context,
+      backgroundColor: AppColors.navyMid,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_camera_outlined, color: AppColors.goldLight),
+              title: Text(l10n.documentsTakePhoto, style: const TextStyle(color: AppColors.textPrimary)),
+              onTap: () => Navigator.of(sheetContext).pop(true),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined, color: AppColors.goldLight),
+              title: Text(l10n.documentsChooseExisting, style: const TextStyle(color: AppColors.textPrimary)),
+              onTap: () => Navigator.of(sheetContext).pop(false),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (fromCamera == null || !mounted) return;
+
+    final file = await pickDocument(fromCamera: fromCamera);
     if (file == null || !mounted) return;
 
     setState(() => _uploading = true);
