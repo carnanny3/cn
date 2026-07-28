@@ -1,4 +1,4 @@
-import { Logger } from '@nestjs/common';
+import { Logger, ServiceUnavailableException } from '@nestjs/common';
 import { mkdir, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
@@ -38,9 +38,25 @@ export function isRemoteConfigured(): boolean {
   return getClient() !== null;
 }
 
+/**
+ * The local-disk fallback is a development convenience only. In production the
+ * container filesystem is ephemeral and the URLs it produces point at
+ * localhost, so accepting an upload there would lose the file on the next
+ * deploy and hand the customer a dead link. Refusing is the honest outcome.
+ */
+function assertUsableFallback(): void {
+  if (process.env.NODE_ENV === 'production') {
+    throw new ServiceUnavailableException({
+      code: 'STORAGE_NOT_CONFIGURED',
+      message: 'File storage is not available right now. Please try again later.',
+    });
+  }
+}
+
 export async function putObject(key: string, body: Buffer, contentType: string): Promise<void> {
   const r2 = getClient();
   if (!r2) {
+    assertUsableFallback();
     const target = join(LOCAL_UPLOAD_DIR, key);
     await mkdir(dirname(target), { recursive: true });
     await writeFile(target, body);

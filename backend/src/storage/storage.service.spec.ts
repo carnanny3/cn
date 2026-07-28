@@ -1,4 +1,4 @@
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, ServiceUnavailableException } from '@nestjs/common';
 import { StorageService } from './storage.service';
 
 function file(overrides: Partial<{ mimetype: string; size: number; originalname: string }> = {}) {
@@ -50,6 +50,20 @@ describe('StorageService', () => {
       await expect(
         service.upload(file({ size: 9 * 1024 * 1024 }), 'listing-photos', 'user-1'),
       ).rejects.toBeInstanceOf(BadRequestException);
+    });
+
+    it('refuses to accept an upload in production without R2 configured', async () => {
+      // The local-disk fallback would silently lose the file on the next deploy
+      // and hand back a localhost URL, so production must fail instead.
+      const previous = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'production';
+      try {
+        await expect(service.upload(file(), 'listing-photos', 'user-1')).rejects.toBeInstanceOf(
+          ServiceUnavailableException,
+        );
+      } finally {
+        process.env.NODE_ENV = previous;
+      }
     });
   });
 
