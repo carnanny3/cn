@@ -125,14 +125,20 @@ export class VehiclesService {
 
     const twelveMonthsAgo = new Date();
     twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
-    const completedServiceBookings = await this.prisma.booking.count({
-      where: {
-        vehicleId,
-        bookingType: 'service',
-        status: 'completed',
-        scheduledAt: { gte: twelveMonthsAgo },
-      },
-    });
+    const [completedServiceBookings, loggedServices] = await Promise.all([
+      this.prisma.booking.count({
+        where: {
+          vehicleId,
+          bookingType: 'service',
+          status: 'completed',
+          scheduledAt: { gte: twelveMonthsAgo },
+        },
+      }),
+      // Servicing done outside Car Nanny still counts, as long as the owner logged it.
+      this.prisma.vehicleRecord.count({
+        where: { vehicleId, type: { in: ['service', 'repair'] }, date: { gte: twelveMonthsAgo } },
+      }),
+    ]);
 
     const now = new Date();
     const docs = await this.prisma.vehicleDocument.findMany({ where: { vehicleId } });
@@ -145,7 +151,7 @@ export class VehiclesService {
 
     const breakdown = calculateHealthScore({
       latestInspectionScoreOutOf10: latestReport?.overallScore ?? null,
-      completedServiceBookingsLast12Months: completedServiceBookings,
+      servicesLast12Months: completedServiceBookings + loggedServices,
       vehicleYear: vehicle.year,
       requiredDocsPresentAndValid,
       requiredDocsTotal: REQUIRED_DOC_TYPES.length,
@@ -159,7 +165,78 @@ export class VehiclesService {
     return breakdown;
   }
 
-  private async assertOwnership(userId: string, vehicleId: string) {
+  // ---------- Co-owners ----------
+
+  async listOwners(userId: string, vehicleId: string) {
+    await this.assertOwnership(userId, vehicleId);
+    const owners = await this.prisma.vehicleOwner.findMany({
+      where: { vehicleId },
+      include: { user: { select: { id: true, fullName: true, email: true } } },
+      orderBy: [{ isPrimary: 'desc' }, { addedAt: 'asc' }],
+    });
+    return owners.map((o) => ({
+      userId: o.user.id,
+      fullName: o.user.fullName,
+      email: o.user.email,
+      isPrimary: o.isPrimary,
+      addedAt: o.addedAt,
+      isYou: o.user.id === userId,
+    }));
+  }
+
+  /**
+   * Gives another Car Nanny account full access to this vehicle's profile,
+   * documents and logbook. Only the primary owner can do this.
+   */
+  async addCoOwner(userId: string, vehicleId: string, email: string) {
+    await this.assertPrimaryOwner(userId, vehicleId);
+    const invitee = await this.prisma.user.findFirst({
+      where: { email: { equals: email.trim(), mode: 'insensitive' }, status: { not: 'suspended' } },
+    });
+    if (!invitee) {
+      throw new NotFoundException({
+        code: 'USER_NOT_FOUND',
+        message: 'No Car Nanny account uses that email. Ask them to sign up first.',
+      });
+    }
+    const existing = await this.prisma.vehicleOwner.findUnique({
+      where: { vehicleId_userId: { vehicleId, userId: invitee.id } },
+    });
+    if (existing) {
+      throw new ConflictException({ code: 'ALREADY_OWNER', message: 'That person already has access to this vehicle.' });
+    }
+    await this.prisma.vehicleOwner.create({
+      data: { vehicleId, userId: invitee.id, isPrimary: false, ownershipType: 'personal' },
+    });
+    return this.listOwners(userId, vehicleId);
+  }
+
+  /** The primary owner can remove anyone else; a co-owner can remove only themselves. */
+  async removeOwner(userId: string, vehicleId: string, ownerUserId: string) {
+    const me = await this.assertOwnership(userId, vehicleId);
+    const target = await this.prisma.vehicleOwner.findUnique({
+      where: { vehicleId_userId: { vehicleId, userId: ownerUserId } },
+    });
+    if (!target) throw new NotFoundException({ code: 'OWNER_NOT_FOUND', message: 'That person does not have access.' });
+    if (target.isPrimary) {
+      throw new ForbiddenException({ code: 'CANNOT_REMOVE_PRIMARY', message: 'The primary owner cannot be removed.' });
+    }
+    if (ownerUserId !== userId && !me.isPrimary) {
+      throw new ForbiddenException({ code: 'NOT_PRIMARY_OWNER', message: 'Only the primary owner can remove someone.' });
+    }
+    await this.prisma.vehicleOwner.delete({ where: { id: target.id } });
+    return { removed: true };
+  }
+
+  private async assertPrimaryOwner(userId: string, vehicleId: string) {
+    const owner = await this.assertOwnership(userId, vehicleId);
+    if (!owner.isPrimary) {
+      throw new ForbiddenException({ code: 'NOT_PRIMARY_OWNER', message: 'Only the primary owner can share this vehicle.' });
+    }
+  }
+
+  /** Throws unless the user is one of the vehicle's owners (primary or co-owner). */
+  async assertOwnership(userId: string, vehicleId: string) {
     const owner = await this.prisma.vehicleOwner.findUnique({
       where: { vehicleId_userId: { vehicleId, userId } },
     });
@@ -169,5 +246,6 @@ export class VehiclesService {
         message: 'You do not have access to this vehicle.',
       });
     }
+    return owner;
   }
 }

@@ -5,6 +5,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { VehiclesModule } from './vehicles/vehicles.module';
+import { LogbookModule } from './logbook/logbook.module';
 import { PartnersModule } from './partners/partners.module';
 import { InspectionsModule } from './inspections/inspections.module';
 import { BookingsModule } from './bookings/bookings.module';
@@ -31,6 +32,7 @@ import { RolesGuard } from './common/guards/roles.guard';
     AuthModule,
     UsersModule,
     VehiclesModule,
+    LogbookModule,
     PartnersModule,
     InspectionsModule,
     BookingsModule,

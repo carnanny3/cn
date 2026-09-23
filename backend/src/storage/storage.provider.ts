@@ -1,7 +1,7 @@
 import { Logger, ServiceUnavailableException } from '@nestjs/common';
-import { mkdir, writeFile } from 'fs/promises';
-import { dirname, join } from 'path';
-import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
+import { mkdir, rm, writeFile } from 'fs/promises';
+import { dirname, join, resolve, sep } from 'path';
+import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 const logger = new Logger('StorageProvider');
@@ -71,6 +71,18 @@ export async function putObject(key: string, body: Buffer, contentType: string):
       ContentType: contentType,
     }),
   );
+}
+
+export async function deleteObject(key: string): Promise<void> {
+  const r2 = getClient();
+  if (!r2) {
+    const target = resolve(LOCAL_UPLOAD_DIR, key);
+    // Keys come from our own database, but never let one escape the upload dir.
+    if (!target.startsWith(resolve(LOCAL_UPLOAD_DIR) + sep)) return;
+    await rm(target, { force: true });
+    return;
+  }
+  await r2.send(new DeleteObjectCommand({ Bucket: process.env.R2_BUCKET, Key: key }));
 }
 
 /**

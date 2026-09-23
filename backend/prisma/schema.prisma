@@ -399,6 +399,9 @@ model Vehicle {
   roadsideRequests RoadsideRequest[]
   conciergeOrders  ConciergeOrder[]
   listings         VehicleListing[]
+  records          VehicleRecord[]
+  fuelEntries      FuelEntry[]
+  reminders        VehicleReminder[]
 
   @@map("vehicles")
 }
@@ -1011,4 +1014,94 @@ model Coupon {
   updatedAt      DateTime           @updatedAt @map("updated_at")
 
   @@map("coupons")
+}
+
+// ---------- Owner logbook: self-reported running costs and reminders ----------
+// Everything below is entered by a vehicle's owners themselves, unlike Booking
+// and Inspection, which are transactions made through Car Nanny. Amounts are
+// what the owner says they paid, so they are never invoiced or reconciled.
+
+enum VehicleRecordType {
+  service
+  repair
+  upgrade
+  fee
+}
+
+model VehicleRecord {
+  id         String            @id @default(uuid())
+  vehicleId  String            @map("vehicle_id")
+  type       VehicleRecordType
+  date       DateTime          @db.Date
+  odometerKm Int?              @map("odometer_km")
+  title      String
+  cost       Float             @default(0)
+  currency   String            @default("AED")
+  notes      String?
+  createdBy  String?           @map("created_by")
+  createdAt  DateTime          @default(now()) @map("created_at")
+  updatedAt  DateTime          @updatedAt @map("updated_at")
+
+  vehicle Vehicle              @relation(fields: [vehicleId], references: [id])
+  photos  VehicleRecordPhoto[]
+
+  @@index([vehicleId, date])
+  @@map("vehicle_records")
+}
+
+/// Receipt or invoice photos for a VehicleRecord. Private: fileKey is a storage
+/// key, and readable links are signed per request, same as VehicleDocument.
+model VehicleRecordPhoto {
+  id        String   @id @default(uuid())
+  recordId  String   @map("record_id")
+  fileKey   String   @map("file_key")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  record VehicleRecord @relation(fields: [recordId], references: [id], onDelete: Cascade)
+
+  @@index([recordId])
+  @@map("vehicle_record_photos")
+}
+
+model FuelEntry {
+  id             String   @id @default(uuid())
+  vehicleId      String   @map("vehicle_id")
+  date           DateTime @db.Date
+  odometerKm     Int      @map("odometer_km")
+  liters         Float
+  cost           Float    @default(0)
+  currency       String   @default("AED")
+  /// Economy is only measurable between two full tanks.
+  fullTank       Boolean  @default(true) @map("full_tank")
+  /// The fill-up before this one wasn't logged, so fuel used since the last full
+  /// tank is unknown and this entry must not produce an economy figure.
+  missedPrevious Boolean  @default(false) @map("missed_previous")
+  notes          String?
+  createdBy      String?  @map("created_by")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id])
+
+  @@index([vehicleId, odometerKm])
+  @@map("fuel_entries")
+}
+
+model VehicleReminder {
+  id            String    @id @default(uuid())
+  vehicleId     String    @map("vehicle_id")
+  title         String
+  dueDate       DateTime? @map("due_date") @db.Date
+  dueOdometerKm Int?      @map("due_odometer_km")
+  repeatMonths  Int?      @map("repeat_months")
+  repeatKm      Int?      @map("repeat_km")
+  notes         String?
+  completedAt   DateTime? @map("completed_at")
+  createdBy     String?   @map("created_by")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id])
+
+  @@index([vehicleId, completedAt])
+  @@map("vehicle_reminders")
 }

@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -15,6 +16,7 @@ import { VehiclesService } from './vehicles.service';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { UpdateVehicleDto } from './dto/update-vehicle.dto';
 import { AddDocumentDto } from './dto/add-document.dto';
+import { AddCoOwnerDto } from './dto/add-co-owner.dto';
 import { CurrentUser, JwtPayload } from '../common/decorators/current-user.decorator';
 
 @ApiTags('vehicles')
@@ -41,6 +43,21 @@ export class VehiclesController {
   @Patch(':id')
   update(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Body() dto: UpdateVehicleDto) {
     return this.vehiclesService.update(user.sub, id, dto);
+  }
+
+  @Get(':id/owners')
+  listOwners(@CurrentUser() user: JwtPayload, @Param('id') id: string) {
+    return this.vehiclesService.listOwners(user.sub, id);
+  }
+
+  @Post(':id/owners')
+  addCoOwner(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Body() dto: AddCoOwnerDto) {
+    return this.vehiclesService.addCoOwner(user.sub, id, dto.email);
+  }
+
+  @Delete(':id/owners/:userId')
+  removeOwner(@CurrentUser() user: JwtPayload, @Param('id') id: string, @Param('userId') ownerUserId: string) {
+    return this.vehiclesService.removeOwner(user.sub, id, ownerUserId);
   }
 
   @Get(':id/health-score')
