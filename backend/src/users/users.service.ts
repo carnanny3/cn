@@ -5,10 +5,14 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { DeleteAccountDto } from './dto/delete-account.dto';
 import { hashPassword, verifyPassword } from '../common/crypto.util';
+import { StorageService } from '../storage/storage.service';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly storage: StorageService,
+  ) {}
 
   async findById(id: string) {
     const user = await this.prisma.user.findUnique({ where: { id } });
@@ -70,6 +74,7 @@ export class UsersService {
       throw new UnauthorizedException({ code: 'INCORRECT_PASSWORD', message: 'Password is incorrect.' });
     }
 
+    const receiptKeys: string[] = [];
     await this.prisma.$transaction(async (tx) => {
       // Free-text the customer wrote, and anything that could re-identify them.
       const conversations = await tx.aiConversation.findMany({ where: { userId: id }, select: { id: true } });
@@ -106,6 +111,16 @@ export class UsersService {
         const otherOwners = await tx.vehicleOwner.count({ where: { vehicleId, userId: { not: id } } });
         if (otherOwners === 0) {
           await tx.vehicleDocument.deleteMany({ where: { vehicleId } });
+          // The owner's own logbook: what they spent, where they drove, and
+          // receipt photos that usually print their name and phone number.
+          const photos = await tx.vehicleRecordPhoto.findMany({
+            where: { record: { vehicleId } },
+            select: { fileKey: true },
+          });
+          receiptKeys.push(...photos.map((p) => p.fileKey));
+          await tx.vehicleRecord.deleteMany({ where: { vehicleId } }); // photo rows cascade
+          await tx.fuelEntry.deleteMany({ where: { vehicleId } });
+          await tx.vehicleReminder.deleteMany({ where: { vehicleId } });
         }
       }
       // The vehicles themselves stay: bookings and inspections reference them.
@@ -131,6 +146,9 @@ export class UsersService {
         },
       });
     });
+    // Only once the rows are committed: a rolled-back deletion must not have
+    // already destroyed the files.
+    await this.storage.removeMany(receiptKeys);
 
     return { message: 'Your account and personal data have been deleted.' };
   }

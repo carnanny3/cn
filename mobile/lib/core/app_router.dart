@@ -19,6 +19,7 @@ import '../features/insurance/insurance_home_screen.dart';
 import '../features/listings/listing_compare_screen.dart';
 import '../features/listings/listing_detail_screen.dart';
 import '../features/listings/marketplace_screen.dart';
+import '../features/logbook/logbook_screen.dart';
 import '../features/profile/profile_screen.dart';
 import '../features/rewards/rewards_screen.dart';
 import '../features/roadside/roadside_request_screen.dart';
@@ -64,6 +65,13 @@ GoRouter buildRouter(AuthState authState) {
       GoRoute(
         path: '/garage/:id',
         builder: (context, state) => VehicleProfileScreen(vehicleId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/garage/:id/logbook',
+        builder: (context, state) => LogbookScreen(
+          vehicleId: state.pathParameters['id']!,
+          initialTab: state.uri.queryParameters['tab'],
+        ),
       ),
       GoRoute(path: '/inspection/book', builder: (context, state) => const BookInspectionScreen()),
       GoRoute(

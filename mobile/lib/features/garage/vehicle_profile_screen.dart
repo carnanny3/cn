@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/api/api_client.dart';
@@ -10,6 +11,7 @@ import '../../core/widgets/glass_card.dart';
 import '../../core/widgets/gradient_background.dart';
 import '../../core/widgets/status_badge.dart';
 import '../../l10n/generated/app_localizations.dart';
+import '../logbook/co_owners_card.dart';
 import 'garage_repository.dart';
 import 'vehicle_document_model.dart';
 import 'vehicle_model.dart';
@@ -151,9 +153,34 @@ class _VehicleProfileScreenState extends State<VehicleProfileScreen> {
                     ),
                   ],
                   const SizedBox(height: 20),
+                  GlassCard(
+                    onTap: () => context.push('/garage/${widget.vehicleId}/logbook').then((_) => setState(_reload)),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.menu_book_outlined, color: AppColors.goldLight),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(l10n.logbookTitle, style: Theme.of(context).textTheme.titleLarge),
+                              Text(l10n.logbookCardSubtitle, style: Theme.of(context).textTheme.bodyMedium),
+                            ],
+                          ),
+                        ),
+                        Icon(
+                          Directionality.of(context) == TextDirection.rtl ? Icons.chevron_left : Icons.chevron_right,
+                          color: AppColors.textSecondary,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
                   _PhotoCard(vehicleId: widget.vehicleId),
                   const SizedBox(height: 20),
                   _DocumentsCard(vehicleId: widget.vehicleId),
+                  const SizedBox(height: 20),
+                  CoOwnersCard(vehicleId: widget.vehicleId),
                 ],
               );
             },

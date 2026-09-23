@@ -1,6 +1,6 @@
 export interface HealthScoreInputs {
   latestInspectionScoreOutOf10: number | null;
-  completedServiceBookingsLast12Months: number;
+  servicesLast12Months: number;
   vehicleYear: number;
   requiredDocsPresentAndValid: number;
   requiredDocsTotal: number;
@@ -34,7 +34,7 @@ export function calculateHealthScore(inputs: HealthScoreInputs): HealthScoreBrea
 
   const maintenanceScore = Math.min(
     100,
-    50 + inputs.completedServiceBookingsLast12Months * 12,
+    50 + inputs.servicesLast12Months * 12,
   );
 
   const documentsScore =
@@ -58,7 +58,7 @@ export function calculateHealthScore(inputs: HealthScoreInputs): HealthScoreBrea
   if (documentsScore < 100) {
     recommendations.push('One or more required documents are missing or expired — update them in Documents to avoid registration or insurance lapses.');
   }
-  if (inputs.completedServiceBookingsLast12Months === 0) {
+  if (inputs.servicesLast12Months === 0) {
     recommendations.push('No service history in the last 12 months — book a routine service to keep this vehicle in good condition.');
   }
 

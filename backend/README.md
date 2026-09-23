@@ -56,7 +56,9 @@ database, so they should pass even without Docker/Postgres installed.
 src/
   auth/          registration, OTP verification, login, JWT issuance/refresh
   users/         profile
-  vehicles/      "My Garage" — CRUD, documents, health score
+  vehicles/      "My Garage" — CRUD, documents, health score, co-owner sharing
+  logbook/       owner-kept records (with receipt photos), fuel economy,
+                 reminders, cost summary and CSV export for each vehicle
   partners/      partner registration, verification, search/ranking
   inspections/   booking, checkpoint submission, report generation
   bookings/      service booking lifecycle

@@ -1,10 +1,10 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { extname } from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { publicUrlFor, putObject, signedGetUrl } from './storage.provider';
+import { deleteObject, publicUrlFor, putObject, signedGetUrl } from './storage.provider';
 
 /** Upload categories. Each one fixes its own key prefix, size cap, and visibility. */
-export type StorageScope = 'vehicle-docs' | 'vehicle-photos' | 'listing-photos';
+export type StorageScope = 'vehicle-docs' | 'vehicle-photos' | 'listing-photos' | 'vehicle-receipts';
 
 const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MB = 1024 * 1024;
@@ -18,6 +18,9 @@ const SCOPES: Record<StorageScope, { mimeTypes: string[]; maxBytes: number; publ
   'vehicle-docs': { mimeTypes: IMAGE_TYPES, maxBytes: 12 * MB, public: false },
   'vehicle-photos': { mimeTypes: IMAGE_TYPES, maxBytes: 8 * MB, public: true },
   'listing-photos': { mimeTypes: IMAGE_TYPES, maxBytes: 8 * MB, public: true },
+  // Photographed receipts for logbook entries. Private for the same reason as
+  // documents: garage invoices routinely print the owner's name and phone.
+  'vehicle-receipts': { mimeTypes: IMAGE_TYPES, maxBytes: 12 * MB, public: false },
 };
 
 const EXTENSIONS: Record<string, string> = {
@@ -44,6 +47,8 @@ export interface UploadedObject {
  */
 @Injectable()
 export class StorageService {
+  private readonly logger = new Logger(StorageService.name);
+
   async upload(
     file: { buffer: Buffer; mimetype: string; size: number; originalname?: string },
     scope: StorageScope,
@@ -71,6 +76,21 @@ export class StorageService {
   buildKey(scope: StorageScope, ownerId: string, mimetype: string, originalname?: string): string {
     const ext = EXTENSIONS[mimetype] ?? (originalname ? extname(originalname).toLowerCase() : '');
     return `${scope}/${ownerId}/${uuidv4()}${ext}`;
+  }
+
+  /**
+   * Best-effort removal of stored objects. Called after the database rows are
+   * already gone, so a storage hiccup must not fail the user's request — it
+   * only leaves an orphaned object, which is logged.
+   */
+  async removeMany(keys: string[]): Promise<void> {
+    await Promise.all(
+      keys.map((key) =>
+        deleteObject(key).catch((err: unknown) =>
+          this.logger.warn(`Could not delete stored object ${key}: ${err instanceof Error ? err.message : err}`),
+        ),
+      ),
+    );
   }
 
   /** Readable URL for a stored value: signed for private scopes, as-is for public ones. */

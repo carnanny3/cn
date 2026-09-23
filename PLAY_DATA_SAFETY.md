@@ -52,7 +52,8 @@ company. **Required** = the app doesn't function without it.
 | User IDs | Yes | No | Required | Account management | `User.id`, JWT `sub` |
 | Purchase history | Yes | No | Optional | App functionality | `Payment`, `Booking`, `Invoice` |
 | Precise location | Yes | **Yes²** | Optional | App functionality (roadside dispatch) | `RoadsideRequest.locationLat/Lng` (required on that model), `Inspection.locationLat/Lng` |
-| Photos | Yes | No | Optional | App functionality | `Vehicle.primaryPhotoUrl`, `VehicleDocument.fileUrl`, `VehicleListing.photos` |
+| Photos | Yes | No | Optional | App functionality | `Vehicle.primaryPhotoUrl`, `VehicleDocument.fileUrl`, `VehicleListing.photos`, `VehicleRecordPhoto.fileKey` (receipts) |
+| Other financial info | Yes | No | Optional | App functionality | Owner-entered running costs: `VehicleRecord.cost`, `FuelEntry.cost` ⁴ |
 | Other in-app messages | Yes | No | Optional | App functionality, support | `AiMessage.content`, `SupportTicketMessage.content` |
 | Device or other IDs | Yes | Yes³ | Optional | Push notifications | `DeviceToken.token` |
 | App interactions | Yes | No | Optional | Analytics/functionality | `AdminAuditLog`, booking status history |
@@ -76,6 +77,13 @@ this answer changes to include Files and docs.
    Play's sense even though it stays inside your system.
 3. **Device IDs** — FCM tokens go to Google/Firebase to route push
    (`push.provider.ts`).
+4. **Logbook costs** — amounts the owner types in for services, repairs, fees
+   and fuel (`VehicleRecord`, `FuelEntry`). They aren't transactions, so they
+   aren't "Purchase history"; "Other financial info" is the closest Play type.
+   This is a judgement call, so confirm it when you submit. Fuel fill-ups and
+   odometer readings don't record *where* the car was, so they aren't location
+   data. A vehicle's co-owners see its logbook, but they are users the owner
+   chose inside the app, which Play doesn't count as sharing.
 
 ## Section 3 — Third-party processors
 
