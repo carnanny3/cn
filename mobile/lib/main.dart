@@ -14,6 +14,7 @@ import 'features/garage/garage_repository.dart';
 import 'features/insurance/insurance_repository.dart';
 import 'features/inspection/inspection_repository.dart';
 import 'features/listings/listing_repository.dart';
+import 'features/logbook/logbook_repository.dart';
 import 'features/partner/partner_repository.dart';
 import 'features/profile/user_repository.dart';
 import 'features/rewards/rewards_repository.dart';
@@ -59,6 +60,7 @@ class _CarNannyAppState extends State<CarNannyApp> {
         ChangeNotifierProvider.value(value: _localeController),
         Provider.value(value: _apiClient),
         Provider(create: (_) => GarageRepository(_apiClient)),
+        Provider(create: (_) => LogbookRepository(_apiClient)),
         Provider(create: (_) => InspectionRepository(_apiClient)),
         Provider(create: (_) => ServicesRepository(_apiClient)),
         Provider(create: (_) => AiRepository(_apiClient)),

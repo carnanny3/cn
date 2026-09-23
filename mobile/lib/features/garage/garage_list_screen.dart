@@ -8,6 +8,7 @@ import '../../core/widgets/gradient_background.dart';
 import 'garage_repository.dart';
 import 'vehicle_model.dart';
 import '../../l10n/generated/app_localizations.dart';
+import '../logbook/attention_card.dart';
 
 class GarageListScreen extends StatefulWidget {
   const GarageListScreen({super.key});
@@ -19,6 +20,9 @@ class GarageListScreen extends StatefulWidget {
 class _GarageListScreenState extends State<GarageListScreen> {
   late Future<List<Vehicle>> _vehiclesFuture;
 
+  /// Re-keys the attention card so it refetches whenever the list reloads.
+  int _generation = 0;
+
   @override
   void initState() {
     super.initState();
@@ -27,6 +31,7 @@ class _GarageListScreenState extends State<GarageListScreen> {
 
   void _reload() {
     _vehiclesFuture = context.read<GarageRepository>().fetchVehicles();
+    _generation++;
   }
 
   @override
@@ -73,12 +78,13 @@ class _GarageListScreenState extends State<GarageListScreen> {
               }
               return ListView.separated(
                 padding: const EdgeInsets.fromLTRB(16, 96, 16, 120),
-                itemCount: vehicles.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                itemCount: vehicles.length + 1,
+                separatorBuilder: (_, index) => SizedBox(height: index == 0 ? 0 : 12),
                 itemBuilder: (context, index) {
-                  final v = vehicles[index];
+                  if (index == 0) return AttentionCard(key: ValueKey(_generation));
+                  final v = vehicles[index - 1];
                   return GlassCard(
-                    onTap: () => context.push('/garage/${v.id}'),
+                    onTap: () => context.push('/garage/${v.id}').then((_) => setState(_reload)),
                     child: Row(
                       children: [
                         Container(
